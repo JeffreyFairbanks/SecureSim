@@ -2,50 +2,39 @@
 import time
 import hmac
 import hashlib
-import threading
 import logging
-from concurrent.futures import ThreadPoolExecutor
-import random
 
 
 class CommandAuthenticator:
+    """Simple HMAC-based command authentication system"""
     def __init__(self):
-        # For a real system, this would be securely stored and regularly rotated
+        # Shared secret key (in a real system, this would be securely stored)
         self.shared_secret = "90fcf5e4-e1be-4390-867a-4bf82be7b13f"
-        self.window_size = 5  # Time window in seconds for valid commands
-        self.verified_commands = []
-        self.rejected_commands = []
-        self.executor = ThreadPoolExecutor(max_workers=2)
+        self.time_window = 5  # Time window in seconds for valid commands
         
     def generate_hmac(self, command, timestamp):
-        """Generate HMAC for command authentication."""
-        # Combine command and timestamp to ensure uniqueness
+        """Generate an HMAC signature for command authentication"""
+        # Combine command and timestamp to create a unique message
         message = f"{command}|{timestamp}"
-        # Create HMAC using SHA-256
+        
+        # Create HMAC signature using SHA-256
         signature = hmac.new(
             self.shared_secret.encode(),
             message.encode(),
             hashlib.sha256
         ).hexdigest()
+        
         return signature
         
     def authenticate_command(self, command, timestamp, signature):
-        """
-        Authenticate a command with its signature.
-        Returns True if command is authentic, False otherwise.
-        """
-        # Verify timestamp is within acceptable window
+        """Verify if a command is authentic based on its signature"""
+        # Check if timestamp is within acceptable time window
         current_time = time.time()
-        if abs(current_time - timestamp) > self.window_size:
+        if abs(current_time - timestamp) > self.time_window:
             logging.warning(f"Command rejected: Timestamp outside valid window")
-            self.rejected_commands.append({
-                'command': command,
-                'timestamp': timestamp,
-                'reason': 'timestamp_expired'
-            })
             return False
             
-        # Recalculate HMAC to verify
+        # Calculate the expected signature
         expected_signature = self.generate_hmac(command, timestamp)
         
         # Use constant-time comparison to prevent timing attacks
@@ -53,38 +42,16 @@ class CommandAuthenticator:
         
         if is_authentic:
             logging.info(f"Command authenticated: {command}")
-            self.verified_commands.append({
-                'command': command,
-                'timestamp': timestamp,
-                'time_verified': current_time
-            })
         else:
             logging.warning(f"Command rejected: Invalid signature for {command}")
-            self.rejected_commands.append({
-                'command': command,
-                'timestamp': timestamp,
-                'reason': 'invalid_signature'
-            })
             
         return is_authentic
         
     def sign_command(self, command):
-        """
-        Sign a command for sending to the system.
-        Returns (command, timestamp, signature) tuple.
-        """
+        """Sign a command for sending to the system"""
         timestamp = time.time()
         signature = self.generate_hmac(command, timestamp)
         return (command, timestamp, signature)
-        
-    def get_stats(self):
-        """Get authentication statistics."""
-        return {
-            'verified_count': len(self.verified_commands),
-            'rejected_count': len(self.rejected_commands),
-            'recent_verified': self.verified_commands[-5:] if self.verified_commands else [],
-            'recent_rejected': self.rejected_commands[-5:] if self.rejected_commands else []
-        }
 
 
 # Singleton instance

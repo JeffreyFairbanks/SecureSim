@@ -15,7 +15,7 @@ current_time = datetime.now().strftime('%H:%M:%S')
 timestamps = [current_time] * 5  # Pre-populate with initial timestamps
 history = [water_level] * 5  # Pre-populate with initial water level
 actual_history = [actual_water_level] * 5  # Pre-populate with initial water level
-MAX_HISTORY = 60  # Increased history size for more data points
+MAX_HISTORY = 30  # Set history size to 30 data points
 last_active_attack = ""  # Track the last active attack for change detection
 attack_change_time = time.time()  # When the attack last changed
 
@@ -119,18 +119,6 @@ def dashboard():
             font-size: 12px;
             color: #6c757d;
           }
-          .alert-security {
-            background-color: #ffebeb;
-            border-color: #ff9999;
-            color: #cc0000;
-            font-weight: bold;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
-          }
-          @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-          }
           .discrepancy-value {
             font-size: 1.4em;
             padding: 5px 10px;
@@ -149,48 +137,53 @@ def dashboard():
             position: relative;
             height: 300px;
           }
-          .current-attack {
-            padding: 10px;
+          
+          /* Simple banner styles - overrides all others */
+          #current-attack {
+            padding: 15px;
             text-align: center;
             margin-bottom: 20px;
-            border-radius: 5px;
+            border-radius: 6px;
             font-weight: bold;
-            animation: fade 3s infinite;
-            border: 3px solid transparent;
+            border: 4px solid;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
           }
-          .attack-normal {
-            border-color: #0d6efd !important; /* Blue border for normal operation */
-            box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+          /* Banner states */
+          .normal-state {
+            background-color: #198754 !important; /* Green */
+            color: white !important;
+            border-color: #198754 !important;
           }
-          .attack-active {
-            border-color: #dc3545 !important; /* Red border for active attacks */
-            box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+          .attack-state {
+            background-color: #dc3545 !important; /* Red */
+            color: white !important;
+            border-color: #dc3545 !important;
+            animation: pulse-red 1.5s infinite !important;
           }
-          .attack-transition {
-            border-color: #ffc107 !important; /* Yellow border for transition */
-            box-shadow: 0 0 15px rgba(255, 193, 7, 0.7);
-            animation: pulse-border 1.5s infinite;
+          .defense-state {
+            background-color: #ffc107 !important; /* Yellow */
+            color: #212529 !important;
+            border-color: #ffc107 !important;
           }
-          @keyframes pulse-border {
-            0%, 100% { border-width: 3px; }
-            50% { border-width: 6px; }
+          
+          @keyframes pulse-red {
+            0%, 100% { background-color: #dc3545 !important; }
+            50% { background-color: #e04050 !important; }
           }
-          @keyframes fade {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
+          
+          .countdown {
+            font-size: 1.2em;
+            margin-top: 5px;
+            padding: 5px 0;
+            border-top: 1px solid rgba(255,255,255,0.3);
           }
+          
           .defense-event-new {
             animation: defense-highlight 2s ease-in-out;
           }
           @keyframes defense-highlight {
             0%, 100% { background-color: transparent; }
             50% { background-color: rgba(25, 135, 84, 0.2); }
-          }
-          .countdown {
-            font-size: 1.2em;
-            margin-top: 5px;
-            padding: 5px 0;
-            border-top: 1px solid rgba(255,255,255,0.3);
           }
         </style>
       </head>
@@ -207,10 +200,10 @@ def dashboard():
           <!-- Active attack status display with countdown -->
           <div class="row mb-3">
             <div class="col">
-              <div id="current-attack" class="current-attack bg-warning text-dark d-none">
-                <div>Currently Demonstrating: <span id="attack-name">Normal Operation</span></div>
+              <div id="current-attack" class="normal-state">
+                <div style="font-size: 1.2em;"><strong>Currently Demonstrating:</strong> <span id="attack-name">Normal Operation</span></div>
                 <div class="countdown">
-                  Next attack in: <span id="countdown-timer">30</span> seconds
+                  Next attack in: <span id="countdown-timer">15</span> seconds
                 </div>
               </div>
             </div>
@@ -221,7 +214,7 @@ def dashboard():
             <div class="col">
               <div class="card">
                 <div id="defense-header" class="card-header bg-secondary text-white d-flex justify-content-between">
-                  <h5 class="mb-0">Defense Event Log <small id="defense-status">(Inactive)</small></h5>
+                  <h5 class="mb-0">Defense Event Log <small id="defense-status"><span class="badge bg-light text-dark ms-2">Inactive</span></small></h5>
                   <span class="badge bg-light text-dark" id="event-count">0 events</span>
                 </div>
                 <div class="card-body p-0" style="max-height: 200px; overflow-y: auto;">
@@ -407,11 +400,11 @@ def dashboard():
           const chart = new Chart(ctx, {
             type: 'line',
             data: {
-              labels: Array(60).fill(''),
+              labels: Array(30).fill(''),
               datasets: [
                 {
                   label: 'Reported Water Level',
-                  data: Array(60).fill(null),
+                  data: Array(30).fill(null),
                   borderColor: '#4dabf7',
                   tension: 0.2,
                   fill: true,
@@ -419,7 +412,7 @@ def dashboard():
                 },
                 {
                   label: 'Actual Water Level',
-                  data: Array(60).fill(null),
+                  data: Array(30).fill(null),
                   borderColor: '#28a745',
                   borderDash: [5, 5],
                   tension: 0.2,
@@ -470,6 +463,8 @@ def dashboard():
             fetch('/api/water-level')
               .then(response => response.json())
               .then(data => {
+                console.log("API Response:", data);
+                
                 // Update main water level display
                 const newLevel = data.level;
                 const newActualLevel = data.actual_level;
@@ -509,100 +504,96 @@ def dashboard():
                 const currentTime = new Date().toLocaleTimeString();
                 updateTimeElement.innerText = currentTime;
                 
-                // Show the active attack name if provided
+                // SIMPLIFIED ATTACK BANNER HANDLING
                 if (data.active_attack && typeof data.active_attack === 'string') {
-                  currentAttackElement.classList.remove('d-none');
-                  const currentAttack = data.active_attack;
-                  attackNameElement.innerText = currentAttack;
+                  const attackMessage = data.active_attack;
                   
-                  // Set appropriate colors based on attack type
-                  currentAttackElement.className = 'current-attack';
+                  // Extract display name and type (remove type tag if present)
+                  let displayName = attackMessage;
+                  let extractedType = "NORMAL";
                   
-                  const withDefense = currentAttack.includes && (
-                    currentAttack.includes('defense') || 
-                    currentAttack.includes('with_defense')
-                  );
-                  
-                  // Add highlighting based on attack type
-                  if (currentAttack === 'ACTIVATING DEFENSE MECHANISMS' || 
-                      (currentAttack.includes && currentAttack.includes('defense_transition'))) {
-                    // Yellow pulsing highlight for transition
-                    currentAttackElement.classList.add('attack-transition');
-                  } else if (currentAttack.includes && (
-                      currentAttack.includes('none') || 
-                      currentAttack === 'Initial Normal Operation' ||
-                      currentAttack === 'Normal Operation (Pre-Defense)' ||
-                      currentAttack === 'Normal Operation (with Defenses)'
-                     )) {
-                    // Blue highlight for normal operation
-                    currentAttackElement.classList.add('attack-normal');
-                  } else if (currentAttack.includes && (
-                      currentAttack.includes('replay') || 
-                      currentAttack.includes('false_data') || 
-                      currentAttack.includes('dos')
-                     )) {
-                    // Red highlight for attacks
-                    currentAttackElement.classList.add('attack-active');
+                  if (attackMessage.includes("[TYPE:")) {
+                    const parts = attackMessage.split("[TYPE:");
+                    displayName = parts[0].trim();
+                    extractedType = parts[1].split("]")[0]; // Extract the type value
+                    console.log("Extracted type:", extractedType);
                   }
                   
-                  // Update defense status display
-                  if (withDefense || (data.defense_events && data.defense_events.length > 0)) {
-                    defenseHeaderElement.className = 'card-header bg-primary text-white d-flex justify-content-between';
-                    defenseStatusElement.innerText = '(Active)';
-                    defenseStatusElement.className = 'badge bg-success ms-2';
-                  } else {
-                    defenseHeaderElement.className = 'card-header bg-secondary text-white d-flex justify-content-between';
-                    defenseStatusElement.innerText = '(Inactive)';
-                    defenseStatusElement.className = '';
+                  // Update attack name display
+                  attackNameElement.innerText = displayName;
+                  
+                  // SIMPLIFIED DETECTION
+                  // 1. Check message content for attack keywords
+                  const hasAttackKeyword = 
+                    attackMessage.toLowerCase().includes("replay") || 
+                    attackMessage.toLowerCase().includes("false data") || 
+                    attackMessage.toLowerCase().includes("dos");
+                  
+                  // 2. Check for defense keywords or type
+                  const hasDefenseKeyword = 
+                    attackMessage.toLowerCase().includes("defense") || 
+                    attackMessage.toLowerCase().includes("with_defense") ||
+                    extractedType === "DEFENSE";
+                  
+                  // 3. Check for explicit attack type
+                  const hasAttackTag = extractedType === "ATTACK";
+                  
+                  // 4. Check significant discrepancy
+                  const hasLargeDiscrepancy = Math.abs(newLevel - newActualLevel) > 5;
+                  
+                  // Handle UI update in order of priority
+                  if (displayName.toLowerCase().includes("demonstration complete")) {
+                    // Demo has completed
+                    console.log("DEMO COMPLETE - SETTING COMPLETION BANNER");
+                    
+                    // Set completion message
+                    attackNameElement.innerHTML = `🎉 Demonstration Complete!`;
+                    countdownElement.innerHTML = "Demo has finished";
+                    
+                    // Apply blue completion style
+                    currentAttackElement.className = 'normal-state';
+                    currentAttackElement.style.backgroundColor = '#0d6efd !important';
+                    currentAttackElement.style.borderColor = '#0d6efd !important';
+                  }
+                  else if (hasAttackKeyword || hasAttackTag || hasLargeDiscrepancy) {
+                    // IT'S AN ATTACK - FORCE RED
+                    console.log("ATTACK DETECTED - SETTING RED BANNER");
+                    
+                    // Set warning indicators
+                    attackNameElement.innerHTML = `⚠️ ${displayName} ⚠️`;
+                    
+                    // Remove all classes and add attack state
+                    currentAttackElement.className = 'attack-state';
+                  }
+                  else if (hasDefenseKeyword || extractedType === "DEFENSE") {
+                    // It's a defense mode - yellow
+                    console.log("DEFENSE MODE - SETTING YELLOW BANNER");
+                    
+                    // Set defense indicator
+                    if (!displayName.includes("Defense")) {
+                      attackNameElement.innerHTML = `🛡️ ${displayName} (Defense Active)`;
+                    } else {
+                      attackNameElement.innerHTML = `🛡️ ${displayName}`;
+                    }
+                    
+                    currentAttackElement.className = 'defense-state';
+                  } 
+                  else {
+                    // Normal operation - green
+                    console.log("NORMAL MODE - SETTING GREEN BANNER");
+                    currentAttackElement.className = 'normal-state';
                   }
                   
-                  // Extract base attack name
-                  let baseAttack = currentAttack;
-                  if (baseAttack.includes && baseAttack.includes('with_defense')) {
-                    baseAttack = baseAttack.split('_with_defense')[0];
-                  }
-                  
-                  if (currentAttack === 'defense_transition') {
-                    // Special case for defense transition
-                    currentAttackElement.classList.add('bg-primary', 'text-white');
-                    attackNameElement.innerText = 'ACTIVATING DEFENSE MECHANISMS';
-                  } else if (baseAttack.includes && baseAttack.includes('replay')) {
-                    currentAttackElement.classList.add('bg-danger', 'text-white');
-                    attackNameElement.innerText = withDefense ? 
-                      'Replay Attack (with defenses)' : 'Replay Attack';
-                  } else if (baseAttack.includes && baseAttack.includes('false_data')) {
-                    currentAttackElement.classList.add('bg-warning', 'text-dark');
-                    attackNameElement.innerText = withDefense ? 
-                      'False Data Injection (with defenses)' : 'False Data Injection';
-                  } else if (baseAttack.includes && baseAttack.includes('dos')) {
-                    currentAttackElement.classList.add('bg-info', 'text-dark');
-                    attackNameElement.innerText = withDefense ? 
-                      'DoS Attack (with defenses)' : 'DoS Attack';
-                  } else if (baseAttack.includes && (baseAttack.includes('none') || baseAttack.includes('Normal'))) {
-                    currentAttackElement.classList.add('bg-success', 'text-white');
-                    attackNameElement.innerText = withDefense ? 
-                      'Normal Operation (with defenses)' : 'Normal Operation';
-                  }
-                  
-                  // Use server-provided time remaining for countdown
-                  countdownValue = data.time_remaining;
+                  // Handle countdown
+                  countdownValue = data.time_remaining || 15;
                   countdownElement.innerText = countdownValue;
                   
-                  // Reset the timer if the attack just changed
-                  if (data.timestamp_changed) {
-                    if (countdownInterval) {
-                      clearInterval(countdownInterval);
-                    }
+                  // Only setup countdown if not already running
+                  if (data.timestamp_changed && !countdownInterval) {
                     countdownInterval = setInterval(() => {
                       countdownValue = Math.max(0, countdownValue - 1);
                       countdownElement.innerText = countdownValue;
                     }, 1000);
-                  }
-                } else {
-                  currentAttackElement.classList.add('d-none');
-                  if (countdownInterval) {
-                    clearInterval(countdownInterval);
-                    countdownInterval = null;
                   }
                 }
 
@@ -616,7 +607,25 @@ def dashboard():
                 chart.update();
                 
                 // Update defense events display
-                if (data.defense_events && data.defense_events.length > 0) {
+                // Check for defense mode
+                const hasDefenseEvents = data.defense_events && data.defense_events.length > 0;
+                const hasDefenseMode = data.active_attack && typeof data.active_attack === 'string' && 
+                  (data.active_attack.includes('defense') || 
+                   data.active_attack.includes('with_defense') || 
+                   data.active_attack.includes('DEFENSE'));
+                
+                // Set defense header state - ACTIVE when either condition is true
+                if (hasDefenseEvents || hasDefenseMode) {
+                  // Set defense header to ACTIVE state
+                  defenseHeaderElement.className = 'card-header bg-primary text-white d-flex justify-content-between';
+                  defenseStatusElement.innerHTML = '<span class="badge bg-success ms-2">Active</span>';
+                } else {
+                  // Set defense header to INACTIVE state
+                  defenseHeaderElement.className = 'card-header bg-secondary text-white d-flex justify-content-between';
+                  defenseStatusElement.innerHTML = '<span class="badge bg-light text-dark ms-2">Inactive</span>';
+                }
+                
+                if (hasDefenseEvents) {
                   // Check if there are new events to highlight
                   const hasNewEvents = data.new_events && data.new_events.length > 0;
                   
@@ -661,15 +670,14 @@ def dashboard():
                     // Add the row to the table
                     defenseEventsElement.appendChild(row);
                   });
-                } else if (data.active_attack && typeof data.active_attack === 'string' && 
-                          (data.active_attack.includes('defense') || data.active_attack.includes('DEFENSE'))) {
+                } else if (hasDefenseMode) {
                   // If in defense mode but no events yet
                   defenseEventsElement.innerHTML = '';
                   const row = document.createElement('tr');
                   const cell = document.createElement('td');
                   cell.colSpan = 3;
-                  cell.className = 'text-center text-muted py-3';
-                  cell.innerHTML = 'Defense systems monitoring...';
+                  cell.className = 'text-center text-primary py-3';
+                  cell.innerHTML = '<i class="bi bi-shield-check"></i> Defense systems active and monitoring...';
                   row.appendChild(cell);
                   defenseEventsElement.appendChild(row);
                   
@@ -701,7 +709,7 @@ def dashboard():
           updateTimeElement.innerText = new Date().toLocaleTimeString();
 
           // Periodic updates
-          setInterval(updateDashboard, 2000);
+          setInterval(updateDashboard, 1000);  // Faster updates
         </script>
       </body>
     </html>
@@ -726,7 +734,41 @@ def api_water_level():
                 if "DEMO" in line and "demonstrating" in line:
                     parts = line.split("demonstrating:")
                     if len(parts) > 1:
-                        active_attack = parts[1].strip()
+                        full_message = parts[1].strip()
+                        
+                        # Extract the attack type if present
+                        attack_type = "NORMAL"  # Default type
+                        if "[TYPE:" in full_message:
+                            type_parts = full_message.split("[TYPE:")
+                            attack_type = type_parts[1].split("]")[0]
+                            # Remove the type tag from the display message
+                            display_message = type_parts[0].strip()
+                        elif "[ATTACK]" in full_message:
+                            # Alternative attack tag format
+                            attack_type = "ATTACK"
+                            display_message = full_message.replace("[ATTACK]", "").strip()
+                        else:
+                            display_message = full_message
+                            
+                        # Detect attack names in the display message as a backup
+                        if ("Replay" in display_message or 
+                            "replay" in display_message or 
+                            "False Data" in display_message or 
+                            "false_data" in display_message or 
+                            "DoS" in display_message or 
+                            "dos" in display_message or
+                            "Dos" in display_message):
+                            print(f"Found attack name in display message: {display_message}")
+                            attack_type = "ATTACK"
+                        
+                        # For debugging - print what we found
+                        print(f"API found message: {display_message} with type: {attack_type}")
+                        
+                        # Only update if the attack is different or the current active_attack is empty
+                        if display_message != last_active_attack or not active_attack:
+                            # Format the attack string with consistent TYPE tag
+                            active_attack = f"{display_message} [TYPE:{attack_type}]"
+                            print(f"API returning active_attack: {active_attack}")
                     break
             
             # Look for any defense activations in all available lines
@@ -781,7 +823,7 @@ def api_water_level():
     
     # Calculate time remaining until next attack
     time_elapsed = time.time() - attack_change_time
-    time_remaining = max(0, 30 - int(time_elapsed))
+    time_remaining = max(0, 15 - int(time_elapsed))
     
     return jsonify({
         'level': water_level,

@@ -1,48 +1,44 @@
 # secure-sim/attacks/dos_attack.py
 import time
-import threading
 import random
 
 
 class DoSAttack:
+    """Simulates a Denial of Service attack by returning delayed/stale sensor readings"""
     def __init__(self, tank):
         self.tank = tank
         self.running = False
         self.last_update_time = time.time()
-        self.update_delay = 0  # Normal operation
-        self.max_delay = 5.0  # Maximum delay in seconds
+        self.delayed_value = 0.0
+        self.max_delay = 3.0  # Maximum delay in seconds
         
-    def attack_loop(self):
-        while self.running:
-            # Randomly vary the delay to simulate intermittent connectivity issues
-            self.update_delay = random.uniform(1.0, self.max_delay)
-            time.sleep(1)
-            
     def get_delayed_reading(self, true_value):
-        """
-        Simulates communication delays by returning stale data
-        """
+        """Simulates communication delays by returning stale data"""
         if not self.running:
-            self.last_update_time = time.time()
             return true_value
-            
+        
+        # Randomly vary the delay to simulate intermittent connectivity
+        update_delay = random.uniform(1.0, self.max_delay)
+        
+        # Get current time
         current_time = time.time()
-        if current_time - self.last_update_time >= self.update_delay:
+        
+        # Check if it's time for an update based on delay
+        if current_time - self.last_update_time >= update_delay:
             # Update the stored value after delay has passed
             self.delayed_value = true_value
             self.last_update_time = current_time
-            
-        # The returned value might be stale
-        return getattr(self, 'delayed_value', true_value)
+        
+        # Return the delayed value (which might be stale)
+        return self.delayed_value
             
     def start(self):
+        """Start the attack"""
         self.running = True
         self.delayed_value = self.tank.get_level()  # Initialize with current value
         self.last_update_time = time.time()
-        thread = threading.Thread(target=self.attack_loop)
-        thread.daemon = True
-        thread.start()
-        return thread
+        return True
         
     def stop(self):
+        """Stop the attack"""
         self.running = False
