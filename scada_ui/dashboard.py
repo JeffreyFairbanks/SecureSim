@@ -2,6 +2,7 @@
 from flask import Flask, render_template_string, jsonify
 import threading
 import time
+import re
 from datetime import datetime
 
 app = Flask(__name__)
@@ -18,6 +19,25 @@ MAX_HISTORY = 60  # Increased history size for more data points
 last_active_attack = ""  # Track the last active attack for change detection
 attack_change_time = time.time()  # When the attack last changed
 
+# Function to extract timestamp from log line
+def get_timestamp_from_log(log_line):
+    """
+    Extract timestamp from a log line and convert to Unix timestamp
+    Example log line: "2025-04-02 11:04:25,864:INFO:Logging initialized."
+    """
+    try:
+        # Extract timestamp using regex
+        match = re.match(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d+', log_line)
+        if match:
+            timestamp_str = match.group(1)
+            dt = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+            return dt.timestamp()
+    except Exception:
+        pass
+    
+    # Return current time if parsing fails
+    return time.time()
+
 
 @app.route('/')
 def dashboard():
@@ -28,6 +48,7 @@ def dashboard():
         <title>SecureSim Dashboard</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <style>
           body {
@@ -124,6 +145,13 @@ def dashboard():
           @keyframes fade {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
+          }
+          .defense-event-new {
+            animation: defense-highlight 2s ease-in-out;
+          }
+          @keyframes defense-highlight {
+            0%, 100% { background-color: transparent; }
+            50% { background-color: rgba(25, 135, 84, 0.2); }
           }
           .countdown {
             font-size: 1.2em;
@@ -237,11 +265,23 @@ def dashboard():
             </div>
           </div>
           
-          <!-- System Security Status -->
+          <!-- System Security Status and Defense Events -->
           <div class="row mt-4">
-            <div class="col text-center">
+            <div class="col-md-4 text-center">
               <h6>System Security Status:</h6>
               <span id="security-status" class="badge bg-success px-4 py-2" style="font-size: 1.1em;">Secured</span>
+            </div>
+            <div class="col-md-8">
+              <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between">
+                  <h6 class="mb-0">Defense Events</h6>
+                </div>
+                <div class="card-body p-0">
+                  <ul id="defense-events" class="list-group list-group-flush">
+                    <li class="list-group-item text-muted small">No defense events detected</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -269,6 +309,7 @@ def dashboard():
           const spoofedWaterElement = document.getElementById('spoofed-water-level');
           const actualWaterElement = document.getElementById('actual-water-level');
           const discrepancyElement = document.getElementById('level-discrepancy');
+          const defenseEventsElement = document.getElementById('defense-events');
 
           // Create tank markers for main tank
           const tankMarkers = document.getElementById('tank-markers');
@@ -424,15 +465,36 @@ def dashboard():
                   
                   // Set appropriate colors based on attack type
                   currentAttackElement.className = 'current-attack';
-                  if (currentAttack.includes('replay')) {
+                  
+                  const withDefense = currentAttack.includes('defense') || 
+                                     currentAttack.includes('with_defense');
+                  
+                  // Extract base attack name
+                  let baseAttack = currentAttack;
+                  if (baseAttack.includes('with_defense')) {
+                    baseAttack = baseAttack.split('_with_defense')[0];
+                  }
+                  
+                  if (currentAttack === 'defense_transition') {
+                    // Special case for defense transition
+                    currentAttackElement.classList.add('bg-primary', 'text-white');
+                    attackNameElement.innerText = 'ACTIVATING DEFENSE MECHANISMS';
+                  } else if (baseAttack.includes('replay')) {
                     currentAttackElement.classList.add('bg-danger', 'text-white');
-                  } else if (currentAttack.includes('false_data')) {
+                    attackNameElement.innerText = withDefense ? 
+                      'Replay Attack (with defenses)' : 'Replay Attack';
+                  } else if (baseAttack.includes('false_data')) {
                     currentAttackElement.classList.add('bg-warning', 'text-dark');
-                  } else if (currentAttack.includes('dos')) {
+                    attackNameElement.innerText = withDefense ? 
+                      'False Data Injection (with defenses)' : 'False Data Injection';
+                  } else if (baseAttack.includes('dos')) {
                     currentAttackElement.classList.add('bg-info', 'text-dark');
-                  } else if (currentAttack.includes('none') || currentAttack.includes('Normal')) {
+                    attackNameElement.innerText = withDefense ? 
+                      'DoS Attack (with defenses)' : 'DoS Attack';
+                  } else if (baseAttack.includes('none') || baseAttack.includes('Normal')) {
                     currentAttackElement.classList.add('bg-success', 'text-white');
-                    attackNameElement.innerText = 'Normal Operation';
+                    attackNameElement.innerText = withDefense ? 
+                      'Normal Operation (with defenses)' : 'Normal Operation';
                   }
                   
                   // Use server-provided time remaining for countdown
@@ -465,6 +527,60 @@ def dashboard():
                 chart.data.datasets[1].data = data.actual_history;
                 chart.data.labels = data.timestamps;
                 chart.update();
+                
+                // Update defense events display
+                if (data.defense_status && data.defense_status.length > 0) {
+                  // Clear the list
+                  defenseEventsElement.innerHTML = '';
+                  
+                  // Add each defense event
+                  data.defense_status.forEach(event => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item py-1 text-info';
+                    
+                    // Extract just the relevant part of the message
+                    let eventText = event;
+                    if (event.includes('[DEFENSE]')) {
+                      eventText = event.split('[DEFENSE]')[1].trim();
+                    }
+                    
+                    // Add an appropriate icon
+                    if (event.includes('Anomaly detection')) {
+                      li.innerHTML = `<i class="bi bi-graph-up"></i> ${eventText}`;
+                      li.classList.add('text-warning');
+                    } else if (event.includes('authentication')) {
+                      li.innerHTML = `<i class="bi bi-shield-check"></i> ${eventText}`;
+                      li.classList.add('text-primary');
+                    } else {
+                      li.innerHTML = `<i class="bi bi-check-circle"></i> ${eventText}`;
+                    }
+                    
+                    defenseEventsElement.appendChild(li);
+                  });
+                  
+                  // If there are no defense events but with_defense is in attack name,
+                  // show a "monitoring" message
+                  if (data.defense_status.length === 0 && data.active_attack.includes('defense')) {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item py-1 text-muted';
+                    li.innerHTML = 'Defense systems monitoring...';
+                    defenseEventsElement.appendChild(li);
+                  }
+                } else if (data.active_attack && data.active_attack.includes('defense')) {
+                  // If defense mode but no events yet
+                  defenseEventsElement.innerHTML = '';
+                  const li = document.createElement('li');
+                  li.className = 'list-group-item py-1 text-muted';
+                  li.innerHTML = 'Defense systems monitoring...';
+                  defenseEventsElement.appendChild(li);
+                } else {
+                  // If no defense mode and no events
+                  defenseEventsElement.innerHTML = '';
+                  const li = document.createElement('li');
+                  li.className = 'list-group-item text-muted small';
+                  li.innerHTML = 'No defense events detected';
+                  defenseEventsElement.appendChild(li);
+                }
               });
           }
 
@@ -491,18 +607,30 @@ def dashboard():
 def api_water_level():
     global history, actual_history, timestamps, last_active_attack, attack_change_time
     
-    # Get active attack from the console output (parsing from last few lines)
+    # Get active attack and defense status from the console output
     active_attack = ""
+    defense_status = []
+    
     with open('data/simulation.log', 'r') as f:
         try:
             lines = f.readlines()
-            for line in reversed(lines[-50:]):  # Look at last 50 lines
+            
+            # Look for the most recent attack demo message
+            for line in reversed(lines[-50:]):
                 if "DEMO" in line and "demonstrating" in line:
                     parts = line.split("demonstrating:")
                     if len(parts) > 1:
                         active_attack = parts[1].strip()
                     break
-        except:
+            
+            # Look for any defense activations in the last 100 lines 
+            for line in reversed(lines[-100:]):
+                if "DEFENSE" in line:
+                    # Only collect the last 10 seconds of defense messages
+                    if time.time() - get_timestamp_from_log(line) < 10:
+                        defense_status.append(line.strip())
+        except Exception as e:
+            print(f"Error parsing log: {e}")
             pass
     
     # Detect if attack has changed
@@ -524,7 +652,8 @@ def api_water_level():
         'timestamps': timestamps,
         'active_attack': active_attack,
         'timestamp_changed': timestamp_changed,
-        'time_remaining': time_remaining
+        'time_remaining': time_remaining,
+        'defense_status': defense_status[-3:] if defense_status else []  # Return last 3 defense messages
     })
 
 
