@@ -548,3 +548,54 @@
 2025-04-02 12:03:01,984:INFO:127.0.0.1 - - [02/Apr/2025 12:03:01] "GET /api/water-level HTTP/1.1" 200 -
 2025-04-02 12:03:03,985:INFO:127.0.0.1 - - [02/Apr/2025 12:03:03] "GET /api/water-level HTTP/1.1" 200 -
 2025-04-02 12:03:05,986:INFO:127.0.0.1 - - [02/Apr/2025 12:03:05] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:07,896:WARNING:Anomaly detected: [DEMO] Now demonstrating: false_data
+2025-04-02 12:03:07,984:INFO:127.0.0.1 - - [02/Apr/2025 12:03:07] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:09,986:INFO:127.0.0.1 - - [02/Apr/2025 12:03:09] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:11,983:INFO:127.0.0.1 - - [02/Apr/2025 12:03:11] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:13,984:INFO:127.0.0.1 - - [02/Apr/2025 12:03:13] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:15,982:INFO:127.0.0.1 - - [02/Apr/2025 12:03:15] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:17,985:INFO:127.0.0.1 - - [02/Apr/2025 12:03:17] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:19,984:INFO:127.0.0.1 - - [02/Apr/2025 12:03:19] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:21,984:INFO:127.0.0.1 - - [02/Apr/2025 12:03:21] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:23,991:INFO:127.0.0.1 - - [02/Apr/2025 12:03:23] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:25,992:INFO:127.0.0.1 - - [02/Apr/2025 12:03:25] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:27,986:INFO:127.0.0.1 - - [02/Apr/2025 12:03:27] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:29,983:INFO:127.0.0.1 - - [02/Apr/2025 12:03:29] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:31,984:INFO:127.0.0.1 - - [02/Apr/2025 12:03:31] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:33,987:INFO:127.0.0.1 - - [02/Apr/2025 12:03:33] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:35,987:INFO:127.0.0.1 - - [02/Apr/2025 12:03:35] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:37,986:INFO:127.0.0.1 - - [02/Apr/2025 12:03:37] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:38,010:WARNING:Anomaly detected: [DEMO] Now demonstrating: dos
+2025-04-02 12:03:39,985:INFO:127.0.0.1 - - [02/Apr/2025 12:03:39] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:41,982:INFO:127.0.0.1 - - [02/Apr/2025 12:03:41] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:43,987:INFO:127.0.0.1 - - [02/Apr/2025 12:03:43] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:45,984:INFO:127.0.0.1 - - [02/Apr/2025 12:03:45] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:47,984:INFO:127.0.0.1 - - [02/Apr/2025 12:03:47] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:49,986:INFO:127.0.0.1 - - [02/Apr/2025 12:03:49] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:51,987:INFO:127.0.0.1 - - [02/Apr/2025 12:03:51] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:53,987:INFO:127.0.0.1 - - [02/Apr/2025 12:03:53] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:55,987:INFO:127.0.0.1 - - [02/Apr/2025 12:03:55] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:57,983:INFO:127.0.0.1 - - [02/Apr/2025 12:03:57] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:03:59,986:INFO:127.0.0.1 - - [02/Apr/2025 12:03:59] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:01,987:INFO:127.0.0.1 - - [02/Apr/2025 12:04:01] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:03,987:INFO:127.0.0.1 - - [02/Apr/2025 12:04:03] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:05,987:INFO:127.0.0.1 - - [02/Apr/2025 12:04:05] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:08,107:WARNING:Anomaly detected: [DEMO] Now demonstrating: normal operation
+2025-04-02 12:04:08,735:INFO:127.0.0.1 - - [02/Apr/2025 12:04:08] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:10,736:INFO:127.0.0.1 - - [02/Apr/2025 12:04:10] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:12,733:INFO:127.0.0.1 - - [02/Apr/2025 12:04:12] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:14,737:INFO:127.0.0.1 - - [02/Apr/2025 12:04:14] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:16,737:INFO:127.0.0.1 - - [02/Apr/2025 12:04:16] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:18,737:INFO:127.0.0.1 - - [02/Apr/2025 12:04:18] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:20,733:INFO:127.0.0.1 - - [02/Apr/2025 12:04:20] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:22,737:INFO:127.0.0.1 - - [02/Apr/2025 12:04:22] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:24,736:INFO:127.0.0.1 - - [02/Apr/2025 12:04:24] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:26,737:INFO:127.0.0.1 - - [02/Apr/2025 12:04:26] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:28,737:INFO:127.0.0.1 - - [02/Apr/2025 12:04:28] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:30,733:INFO:127.0.0.1 - - [02/Apr/2025 12:04:30] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:32,735:INFO:127.0.0.1 - - [02/Apr/2025 12:04:32] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:34,735:INFO:127.0.0.1 - - [02/Apr/2025 12:04:34] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:36,737:INFO:127.0.0.1 - - [02/Apr/2025 12:04:36] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:38,224:WARNING:Anomaly detected: [DEMO] Now demonstrating: replay
+2025-04-02 12:04:38,733:INFO:127.0.0.1 - - [02/Apr/2025 12:04:38] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:04:40,732:INFO:127.0.0.1 - - [02/Apr/2025 12:04:40] "GET /api/water-level HTTP/1.1" 200 -

@@ -133,7 +133,7 @@ def main():
     tank = WaterTank(capacity=100.0, initial_level=50.0)
     
     # Start the control logic
-    controller = Controller(tank, setpoint=50.0)
+    controller = Controller(tank, setpoint=75.0)  # Increased setpoint to allow higher water levels
     controller.start()
     
     # Initialize attack components
