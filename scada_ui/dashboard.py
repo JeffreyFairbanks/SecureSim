@@ -647,7 +647,7 @@ def dashboard():
 
 @app.route('/api/water-level')
 def api_water_level():
-    global history, actual_history, timestamps, last_active_attack, attack_change_time
+    global history, actual_history, timestamps, last_active_attack, attack_change_time, defense_events
     
     # Get active attack and defense status from the console output
     active_attack = ""
@@ -701,7 +701,6 @@ def api_water_level():
             print(f"Error parsing log: {e}")
     
     # Add new events to our global list
-    global defense_events
     defense_events.extend(new_defense_events)
     
     # Keep only the most recent MAX_DEFENSE_EVENTS
