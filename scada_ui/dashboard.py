@@ -15,6 +15,8 @@ timestamps = [current_time] * 5  # Pre-populate with initial timestamps
 history = [water_level] * 5  # Pre-populate with some initial data points
 actual_history = [actual_water_level] * 5  # Pre-populate with some initial data points
 MAX_HISTORY = 60  # Increased history size for more data points
+last_active_attack = ""  # Track the last active attack for change detection
+attack_change_time = time.time()  # When the attack last changed
 
 
 @app.route('/')
@@ -112,7 +114,7 @@ def dashboard():
             height: 300px;
           }
           .current-attack {
-            padding: 5px 10px;
+            padding: 10px;
             text-align: center;
             margin-bottom: 20px;
             border-radius: 5px;
@@ -122,6 +124,12 @@ def dashboard():
           @keyframes fade {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
+          }
+          .countdown {
+            font-size: 1.2em;
+            margin-top: 5px;
+            padding: 5px 0;
+            border-top: 1px solid rgba(255,255,255,0.3);
           }
         </style>
       </head>
@@ -135,11 +143,14 @@ def dashboard():
             </div>
           </div>
           
-          <!-- Active attack status display -->
+          <!-- Active attack status display with countdown -->
           <div class="row mb-3">
             <div class="col">
               <div id="current-attack" class="current-attack bg-warning text-dark d-none">
-                Currently Demonstrating: <span id="attack-name">Normal Operation</span>
+                <div>Currently Demonstrating: <span id="attack-name">Normal Operation</span></div>
+                <div class="countdown">
+                  Next attack in: <span id="countdown-timer">30</span> seconds
+                </div>
               </div>
             </div>
           </div>
@@ -226,31 +237,11 @@ def dashboard():
             </div>
           </div>
           
+          <!-- System Security Status -->
           <div class="row mt-4">
-            <div class="col-md-12">
-              <div class="card">
-                <div class="card-header bg-primary text-white">
-                  <h5 class="mb-0">System Status</h5>
-                </div>
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col-md-6">
-                      <div class="mb-3">
-                        <h6>Flow Rate:</h6>
-                        <div class="progress">
-                          <div class="progress-bar" role="progressbar" style="width: 75%;">Normal</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="mb-3">
-                        <h6>System Security:</h6>
-                        <span id="security-status" class="badge bg-success">Secured</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div class="col text-center">
+              <h6>System Security Status:</h6>
+              <span id="security-status" class="badge bg-success px-4 py-2" style="font-size: 1.1em;">Secured</span>
             </div>
           </div>
         </div>
@@ -266,6 +257,11 @@ def dashboard():
           const currentAttackElement = document.getElementById('current-attack');
           const attackNameElement = document.getElementById('attack-name');
           const securityStatusElement = document.getElementById('security-status');
+          const countdownElement = document.getElementById('countdown-timer');
+          
+          // Countdown timer variables
+          let countdownValue = 30;
+          let countdownInterval = null;
           
           // Spoofed vs Actual elements
           const spoofedLevelElement = document.getElementById('spoofed-level-value');
@@ -423,22 +419,42 @@ def dashboard():
                 // Show the active attack name if provided
                 if (data.active_attack) {
                   currentAttackElement.classList.remove('d-none');
-                  attackNameElement.innerText = data.active_attack;
+                  const currentAttack = data.active_attack;
+                  attackNameElement.innerText = currentAttack;
                   
                   // Set appropriate colors based on attack type
                   currentAttackElement.className = 'current-attack';
-                  if (data.active_attack.includes('replay')) {
+                  if (currentAttack.includes('replay')) {
                     currentAttackElement.classList.add('bg-danger', 'text-white');
-                  } else if (data.active_attack.includes('false_data')) {
+                  } else if (currentAttack.includes('false_data')) {
                     currentAttackElement.classList.add('bg-warning', 'text-dark');
-                  } else if (data.active_attack.includes('dos')) {
+                  } else if (currentAttack.includes('dos')) {
                     currentAttackElement.classList.add('bg-info', 'text-dark');
-                  } else if (data.active_attack.includes('none') || data.active_attack.includes('Normal')) {
+                  } else if (currentAttack.includes('none') || currentAttack.includes('Normal')) {
                     currentAttackElement.classList.add('bg-success', 'text-white');
                     attackNameElement.innerText = 'Normal Operation';
                   }
+                  
+                  // Use server-provided time remaining for countdown
+                  countdownValue = data.time_remaining;
+                  countdownElement.innerText = countdownValue;
+                  
+                  // Reset the timer if the attack just changed
+                  if (data.timestamp_changed) {
+                    if (countdownInterval) {
+                      clearInterval(countdownInterval);
+                    }
+                    countdownInterval = setInterval(() => {
+                      countdownValue = Math.max(0, countdownValue - 1);
+                      countdownElement.innerText = countdownValue;
+                    }, 1000);
+                  }
                 } else {
                   currentAttackElement.classList.add('d-none');
+                  if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                  }
                 }
 
                 // Update history counter
@@ -473,7 +489,7 @@ def dashboard():
 
 @app.route('/api/water-level')
 def api_water_level():
-    global history, actual_history, timestamps
+    global history, actual_history, timestamps, last_active_attack, attack_change_time
     
     # Get active attack from the console output (parsing from last few lines)
     active_attack = ""
@@ -489,13 +505,26 @@ def api_water_level():
         except:
             pass
     
+    # Detect if attack has changed
+    timestamp_changed = False
+    if active_attack != last_active_attack and active_attack:
+        timestamp_changed = True
+        last_active_attack = active_attack
+        attack_change_time = time.time()
+    
+    # Calculate time remaining until next attack
+    time_elapsed = time.time() - attack_change_time
+    time_remaining = max(0, 30 - int(time_elapsed))
+    
     return jsonify({
         'level': water_level,
         'actual_level': actual_water_level,
         'history': history,
         'actual_history': actual_history,
         'timestamps': timestamps,
-        'active_attack': active_attack
+        'active_attack': active_attack,
+        'timestamp_changed': timestamp_changed,
+        'time_remaining': time_remaining
     })
 
 
