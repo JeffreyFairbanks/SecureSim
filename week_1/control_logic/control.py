@@ -40,12 +40,14 @@ class Controller:
             # Sleep to control loop rate
             time.sleep(1)
 
+
     def start(self):
         """Start control loop in background thread"""
         thread = threading.Thread(target=self.control_loop)
         thread.daemon = True
         thread.start()
         return thread
+
 
     def stop(self):
         """Stop the control loop"""
