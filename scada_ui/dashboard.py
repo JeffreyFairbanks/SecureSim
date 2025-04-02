@@ -1,6 +1,8 @@
 # secure-sim/scada_ui/dashboard.py
 from flask import Flask, render_template_string, jsonify
 import threading
+import time
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -8,9 +10,11 @@ app = Flask(__name__)
 # Global variables to store both reported and actual water levels
 water_level = 45.0  # Potentially spoofed/reported level (set to a different initial value)
 actual_water_level = 75.0  # Actual water level (set to a different initial value)
+current_time = datetime.now().strftime('%H:%M:%S')
+timestamps = [current_time] * 5  # Pre-populate with initial timestamps
 history = [water_level] * 5  # Pre-populate with some initial data points
 actual_history = [actual_water_level] * 5  # Pre-populate with some initial data points
-MAX_HISTORY = 20
+MAX_HISTORY = 60  # Increased history size for more data points
 
 
 @app.route('/')
@@ -28,7 +32,7 @@ def dashboard():
             background-color: #f8f9fa;
           }
           .dashboard-container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 50px auto;
             padding: 20px;
             background-color: white;
@@ -89,6 +93,36 @@ def dashboard():
             0%, 100% { opacity: 1; }
             50% { opacity: 0.8; }
           }
+          .discrepancy-value {
+            font-size: 1.4em;
+            padding: 5px 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+          }
+          .discrepancy-high {
+            animation: highlight 2s infinite;
+          }
+          @keyframes highlight {
+            0%, 100% { background-color: #fff0f0; }
+            50% { background-color: #ffdddd; }
+          }
+          .chart-container {
+            position: relative;
+            height: 300px;
+          }
+          .current-attack {
+            padding: 5px 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            animation: fade 3s infinite;
+          }
+          @keyframes fade {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+          }
         </style>
       </head>
       <body>
@@ -98,6 +132,15 @@ def dashboard():
               <h1 class="fw-bold text-primary">Water Tank Control System</h1>
               <p class="text-secondary">Secure SCADA Simulation Dashboard</p>
               <p class="refresh-time">Last updated: <span id="update-time"></span></p>
+            </div>
+          </div>
+          
+          <!-- Active attack status display -->
+          <div class="row mb-3">
+            <div class="col">
+              <div id="current-attack" class="current-attack bg-warning text-dark d-none">
+                Currently Demonstrating: <span id="attack-name">Normal Operation</span>
+              </div>
             </div>
           </div>
 
@@ -119,11 +162,14 @@ def dashboard():
 
             <div class="col-md-6">
               <div class="card">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-primary text-white d-flex justify-content-between">
                   <h5 class="mb-0">Level History</h5>
+                  <small class="text-white">Showing <span id="history-points">0</span> data points</small>
                 </div>
                 <div class="card-body">
-                  <canvas id="chart" height="220"></canvas>
+                  <div class="chart-container">
+                    <canvas id="chart"></canvas>
+                  </div>
                 </div>
               </div>
             </div>
@@ -170,10 +216,10 @@ def dashboard():
                     </div>
                   </div>
                 </div>
-                <div class="card-footer bg-light">
+                <div class="card-footer bg-light py-3">
                   <div class="text-center">
                     <span class="text-danger fw-bold">Discrepancy:</span> 
-                    <span id="level-discrepancy" class="text-dark fw-bold">0.0</span> units
+                    <span id="level-discrepancy" class="discrepancy-value">0.000</span> units
                   </div>
                 </div>
               </div>
@@ -199,7 +245,7 @@ def dashboard():
                     <div class="col-md-6">
                       <div class="mb-3">
                         <h6>System Security:</h6>
-                        <span class="badge bg-success">Secured</span>
+                        <span id="security-status" class="badge bg-success">Secured</span>
                       </div>
                     </div>
                   </div>
@@ -216,6 +262,10 @@ def dashboard():
           const levelElement = document.getElementById('level-value');
           const waterElement = document.getElementById('water-level');
           const updateTimeElement = document.getElementById('update-time');
+          const historyPointsElement = document.getElementById('history-points');
+          const currentAttackElement = document.getElementById('current-attack');
+          const attackNameElement = document.getElementById('attack-name');
+          const securityStatusElement = document.getElementById('security-status');
           
           // Spoofed vs Actual elements
           const spoofedLevelElement = document.getElementById('spoofed-level-value');
@@ -268,11 +318,11 @@ def dashboard():
           const chart = new Chart(ctx, {
             type: 'line',
             data: {
-              labels: Array(20).fill(''),
+              labels: Array(60).fill(''),
               datasets: [
                 {
                   label: 'Reported Water Level',
-                  data: Array(20).fill(null),
+                  data: Array(60).fill(null),
                   borderColor: '#4dabf7',
                   tension: 0.2,
                   fill: true,
@@ -280,7 +330,7 @@ def dashboard():
                 },
                 {
                   label: 'Actual Water Level',
-                  data: Array(20).fill(null),
+                  data: Array(60).fill(null),
                   borderColor: '#28a745',
                   borderDash: [5, 5],
                   tension: 0.2,
@@ -294,11 +344,34 @@ def dashboard():
               scales: {
                 y: {
                   beginAtZero: true,
-                  max: 100
+                  max: 100,
+                  title: {
+                    display: true,
+                    text: 'Water Level (units)'
+                  }
+                },
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Time'
+                  },
+                  ticks: {
+                    maxRotation: 45,
+                    minRotation: 45
+                  }
                 }
               },
               animation: {
                 duration: 500
+              },
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    title: function(tooltipItems) {
+                      return tooltipItems[0].label || 'Unknown time';
+                    }
+                  }
+                }
               }
             }
           });
@@ -316,31 +389,65 @@ def dashboard():
                 
                 // Update main display
                 waterElement.style.height = `${height}%`;
-                levelElement.innerText = newLevel.toFixed(1);
+                levelElement.innerText = newLevel.toFixed(3);
                 
                 // Update spoofed vs actual display
                 spoofedWaterElement.style.height = `${height}%`;
                 actualWaterElement.style.height = `${actualHeight}%`;
-                spoofedLevelElement.innerText = newLevel.toFixed(1);
-                actualLevelElement.innerText = newActualLevel.toFixed(1);
+                spoofedLevelElement.innerText = newLevel.toFixed(3);
+                actualLevelElement.innerText = newActualLevel.toFixed(3);
                 
-                // Calculate and display discrepancy
-                const discrepancy = Math.abs(newLevel - newActualLevel).toFixed(1);
+                // Calculate and display discrepancy with more decimal places
+                const discrepancy = Math.abs(newLevel - newActualLevel).toFixed(3);
                 discrepancyElement.innerText = discrepancy;
                 
                 // If there's a significant discrepancy, highlight it
-                if (discrepancy > 10) {
-                  discrepancyElement.className = 'text-danger fw-bold';
+                if (discrepancy > 5) {
+                  discrepancyElement.className = 'discrepancy-value text-danger fw-bold discrepancy-high';
+                  securityStatusElement.className = 'badge bg-danger';
+                  securityStatusElement.innerText = 'Potential Attack';
+                } else if (discrepancy > 0.5) {
+                  discrepancyElement.className = 'discrepancy-value text-warning fw-bold';
+                  securityStatusElement.className = 'badge bg-warning text-dark';
+                  securityStatusElement.innerText = 'Suspicious';
                 } else {
-                  discrepancyElement.className = 'text-dark fw-bold';
+                  discrepancyElement.className = 'discrepancy-value text-dark fw-bold';
+                  securityStatusElement.className = 'badge bg-success';
+                  securityStatusElement.innerText = 'Secured';
                 }
 
                 // Update time
-                updateTimeElement.innerText = new Date().toLocaleTimeString();
+                const currentTime = new Date().toLocaleTimeString();
+                updateTimeElement.innerText = currentTime;
+                
+                // Show the active attack name if provided
+                if (data.active_attack) {
+                  currentAttackElement.classList.remove('d-none');
+                  attackNameElement.innerText = data.active_attack;
+                  
+                  // Set appropriate colors based on attack type
+                  currentAttackElement.className = 'current-attack';
+                  if (data.active_attack.includes('replay')) {
+                    currentAttackElement.classList.add('bg-danger', 'text-white');
+                  } else if (data.active_attack.includes('false_data')) {
+                    currentAttackElement.classList.add('bg-warning', 'text-dark');
+                  } else if (data.active_attack.includes('dos')) {
+                    currentAttackElement.classList.add('bg-info', 'text-dark');
+                  } else if (data.active_attack.includes('none') || data.active_attack.includes('Normal')) {
+                    currentAttackElement.classList.add('bg-success', 'text-white');
+                    attackNameElement.innerText = 'Normal Operation';
+                  }
+                } else {
+                  currentAttackElement.classList.add('d-none');
+                }
 
-                // Update chart with both datasets
+                // Update history counter
+                historyPointsElement.innerText = data.history.length;
+
+                // Update chart with both datasets and timestamps
                 chart.data.datasets[0].data = data.history;
                 chart.data.datasets[1].data = data.actual_history;
+                chart.data.labels = data.timestamps;
                 chart.update();
               });
           }
@@ -366,17 +473,34 @@ def dashboard():
 
 @app.route('/api/water-level')
 def api_water_level():
-    global history, actual_history
+    global history, actual_history, timestamps
+    
+    # Get active attack from the console output (parsing from last few lines)
+    active_attack = ""
+    with open('data/simulation.log', 'r') as f:
+        try:
+            lines = f.readlines()
+            for line in reversed(lines[-50:]):  # Look at last 50 lines
+                if "DEMO" in line and "demonstrating" in line:
+                    parts = line.split("demonstrating:")
+                    if len(parts) > 1:
+                        active_attack = parts[1].strip()
+                    break
+        except:
+            pass
+    
     return jsonify({
         'level': water_level,
         'actual_level': actual_water_level,
         'history': history,
-        'actual_history': actual_history
+        'actual_history': actual_history,
+        'timestamps': timestamps,
+        'active_attack': active_attack
     })
 
 
 def update_water_level(new_level, new_actual_level=None):
-    global water_level, actual_water_level, history, actual_history
+    global water_level, actual_water_level, history, actual_history, timestamps
     water_level = new_level
     
     # If actual level is provided, update it (otherwise keep the spoofed value as actual too)
@@ -385,14 +509,18 @@ def update_water_level(new_level, new_actual_level=None):
     else:
         actual_water_level = new_level
 
+    # Add timestamp for this data point
+    current_time = datetime.now().strftime('%H:%M:%S')
+    timestamps.append(current_time)
+    
     # Add to history and maintain maximum size
     history.append(new_level)
     actual_history.append(actual_water_level)
     
     if len(history) > MAX_HISTORY:
         history = history[-MAX_HISTORY:]
-    if len(actual_history) > MAX_HISTORY:
         actual_history = actual_history[-MAX_HISTORY:]
+        timestamps = timestamps[-MAX_HISTORY:]
 
 
 def run_dashboard():

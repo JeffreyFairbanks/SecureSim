@@ -42,10 +42,13 @@ def simulation_loop(tank, attacks=None, defenses_enabled=False, demo_mode=False)
                 active_attack = attack_names[attack_index]
                 attack_start_time = current_time
                 
-                # Print demo status
+                # Print demo status with more visible logging
+                attack_name = active_attack if active_attack != 'none' else 'normal operation'
                 print(f"\n{'='*60}")
-                print(f"[DEMO] Now demonstrating: {active_attack if active_attack != 'none' else 'normal operation'}")
+                print(f"[DEMO] Now demonstrating: {attack_name}")
                 print(f"{'='*60}\n")
+                # Log to simulation.log for dashboard to pick up
+                log_anomaly(f"[DEMO] Now demonstrating: {attack_name}")
                 
                 # Start the new attack
                 if active_attack != 'none' and active_attack in attacks:
