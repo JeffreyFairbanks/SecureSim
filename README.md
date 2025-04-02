@@ -96,22 +96,32 @@ secure-sim/
    
    # Enable defense mechanisms
    python main.py --attack all --defense
-   
+   ```
+
+2. **Recommended for presentation**: Use the interactive demo mode that automatically cycles through attacks:
+   ```bash
    # Demo mode - automatically cycles through all attacks (30 seconds each)
    python main.py --demo
    
    # Demo mode with defenses enabled
    python main.py --demo --defense
    ```
+   
+   The demo mode features:
+   - Automatic cycling through each attack type (30 seconds per attack)
+   - Clear visual indicators showing which attack is active
+   - Countdown timer showing when the next attack will begin
+   - Color-coded UI elements that change based on the attack type
+   - Real-time visualization of attack effects with detailed discrepancy measurements
 
-2. Access the dashboard:
+3. Access the dashboard:
    - Open your browser and navigate to `http://127.0.0.1:5000/`
    - The dashboard automatically updates every 2 seconds
 
-3. To stop the simulation:
+4. To stop the simulation:
    - Press `Ctrl+C` in the terminal
 
-4. Run tests:
+5. Run tests:
    ```bash
    python -m unittest discover tests
    ```
@@ -120,13 +130,14 @@ secure-sim/
 
 The web dashboard consists of several components:
 
-1. **Main Water Tank Display**: Shows the current water level with animated fluid visualization
-2. **Level History Chart**: Tracks water level changes over time
-3. **System Status Panel**: Displays flow rate and security status
+1. **Attack Status Banner**: Displays the currently active attack and countdown to next attack
+2. **Main Water Tank Display**: Shows the current water level with animated fluid visualization
+3. **Level History Chart**: Tracks water level changes over time with timestamps
 4. **Security Demonstration Section**: Highlighted with a red border, showing:
    - Left side: Reported/spoofed water level (what the control system "sees")
    - Right side: Actual water level (what's really in the tank)
-   - Discrepancy calculation between reported and actual values
+   - Detailed discrepancy measurement between reported and actual values
+5. **System Security Status**: Color-coded indicator showing security state based on discrepancy levels
 
 ## 🔐 Security Concepts Demonstrated
 
