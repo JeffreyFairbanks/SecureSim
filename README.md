@@ -108,11 +108,17 @@ secure-sim/
    ```
    
    The demo mode features:
-   - Automatic cycling through each attack type (30 seconds per attack)
-   - Clear visual indicators showing which attack is active
-   - Countdown timer showing when the next attack will begin
-   - Color-coded UI elements that change based on the attack type
-   - Real-time visualization of attack effects with detailed discrepancy measurements
+   - **Complete Attack Lifecycle**: Starts with normal operation, shows all attacks, then demonstrates defense mechanisms
+   - **Structured Demonstration Flow**:
+     1. Initial normal operation (baseline system behavior)
+     2. Three attacks without defenses (Replay, False Data Injection, DoS)
+     3. Clear defense activation transition
+     4. Same three attacks with defenses active (showing mitigation)
+   - **Interactive Visual Elements**:
+     - Countdown timer showing seconds until next phase
+     - Color-coded attack status banners
+     - Defense event log showing all defense actions with timestamps
+     - Real-time visualization of attack effects and defense responses
 
 3. Access the dashboard:
    - Open your browser and navigate to `http://127.0.0.1:5000/`
@@ -130,21 +136,35 @@ secure-sim/
 
 The web dashboard consists of several components:
 
-1. **Attack Status Banner**: Displays the currently active attack and countdown to next attack
-2. **Main Water Tank Display**: Shows the current water level with animated fluid visualization
-3. **Level History Chart**: Tracks water level changes over time with timestamps
-4. **Security Demonstration Section**: Highlighted with a red border, showing:
+1. **Attack Status Banner**: Displays the currently active attack and countdown to next phase
+2. **Defense Event Log**: Time-stamped record of all defense actions with categorization:
+   - Shows anomaly detection events with timestamps
+   - Displays authentication events when backup systems are activated
+   - Maintains history throughout the entire simulation
+3. **Main Water Tank Display**: Shows the current water level with animated fluid visualization
+4. **Level History Chart**: Tracks water level changes over time with timestamps
+5. **Security Demonstration Section**: Highlighted with a red border, showing:
    - Left side: Reported/spoofed water level (what the control system "sees")
    - Right side: Actual water level (what's really in the tank)
    - Detailed discrepancy measurement between reported and actual values
-5. **System Security Status**: Color-coded indicator showing security state based on discrepancy levels
+6. **System Security Status**: Color-coded indicator showing security state based on discrepancy levels
 
 ## 🔐 Security Concepts Demonstrated
 
-1. **Sensor Data Integrity**: Visualizes how attackers can manipulate sensor data
-2. **Attack Detection**: Shows how comparing expected vs. actual behavior can reveal attacks
-3. **System Monitoring**: Demonstrates the importance of logging and anomaly detection
-4. **Authentication**: Shows how to verify the authenticity of control commands
+1. **Attack Types**:
+   - **Replay Attack**: Shows how attackers can feed fixed sensor readings to control systems
+   - **False Data Injection**: Demonstrates gradual manipulation of sensor data to avoid detection
+   - **Denial of Service**: Illustrates how delayed data can impact system operations
+
+2. **Defense Mechanisms**:
+   - **Statistical Anomaly Detection**: Uses statistical models to identify suspicious variations in data
+   - **Command Authentication**: Validates control commands using cryptographic signatures
+   - **Redundant Systems**: Shows how backup systems can mitigate service disruptions
+   
+3. **Security Principles**:
+   - **Defense in Depth**: Demonstrates using multiple security layers for better protection
+   - **Real-time Monitoring**: Shows the importance of continuous security monitoring
+   - **Detection vs. Prevention**: Highlights both preventing attacks and detecting ongoing ones
 
 ## 💡 Educational Use Cases
 
