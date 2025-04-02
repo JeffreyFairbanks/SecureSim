@@ -1,6 +1,7 @@
 # secure-sim/main.py
 import time
 import argparse
+import random
 from process_sim.water_tank import WaterTank
 from control_logic.control import Controller
 from attacks.replay_attack import ReplayAttack
