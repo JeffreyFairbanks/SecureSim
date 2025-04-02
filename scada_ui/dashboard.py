@@ -19,6 +19,10 @@ MAX_HISTORY = 60  # Increased history size for more data points
 last_active_attack = ""  # Track the last active attack for change detection
 attack_change_time = time.time()  # When the attack last changed
 
+# Store all defense events for historical logging
+defense_events = []  # List of defense events with timestamps
+MAX_DEFENSE_EVENTS = 100  # Maximum number of defense events to retain
+
 # Function to extract timestamp from log line
 def get_timestamp_from_log(log_line):
     """
@@ -163,7 +167,7 @@ def dashboard():
       </head>
       <body>
         <div class="container dashboard-container">
-          <div class="row mb-4">
+          <div class="row mb-3">
             <div class="col text-center">
               <h1 class="fw-bold text-primary">Water Tank Control System</h1>
               <p class="text-secondary">Secure SCADA Simulation Dashboard</p>
@@ -178,6 +182,34 @@ def dashboard():
                 <div>Currently Demonstrating: <span id="attack-name">Normal Operation</span></div>
                 <div class="countdown">
                   Next attack in: <span id="countdown-timer">30</span> seconds
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Defense Events Section - Moved to top -->
+          <div class="row mb-4">
+            <div class="col">
+              <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between">
+                  <h5 class="mb-0">Defense Event Log</h5>
+                  <span class="badge bg-light text-dark" id="event-count">0 events</span>
+                </div>
+                <div class="card-body p-0" style="max-height: 200px; overflow-y: auto;">
+                  <table class="table table-striped table-hover mb-0">
+                    <thead>
+                      <tr>
+                        <th scope="col" style="width: 100px">Time</th>
+                        <th scope="col">Event</th>
+                        <th scope="col" style="width: 120px">Type</th>
+                      </tr>
+                    </thead>
+                    <tbody id="defense-events">
+                      <tr>
+                        <td colspan="3" class="text-center text-muted py-3">No defense events logged</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -265,23 +297,11 @@ def dashboard():
             </div>
           </div>
           
-          <!-- System Security Status and Defense Events -->
+          <!-- System Security Status -->
           <div class="row mt-4">
-            <div class="col-md-4 text-center">
+            <div class="col text-center">
               <h6>System Security Status:</h6>
               <span id="security-status" class="badge bg-success px-4 py-2" style="font-size: 1.1em;">Secured</span>
-            </div>
-            <div class="col-md-8">
-              <div class="card">
-                <div class="card-header bg-primary text-white d-flex justify-content-between">
-                  <h6 class="mb-0">Defense Events</h6>
-                </div>
-                <div class="card-body p-0">
-                  <ul id="defense-events" class="list-group list-group-flush">
-                    <li class="list-group-item text-muted small">No defense events detected</li>
-                  </ul>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -310,6 +330,7 @@ def dashboard():
           const actualWaterElement = document.getElementById('actual-water-level');
           const discrepancyElement = document.getElementById('level-discrepancy');
           const defenseEventsElement = document.getElementById('defense-events');
+          const eventCountElement = document.getElementById('event-count');
 
           // Create tank markers for main tank
           const tankMarkers = document.getElementById('tank-markers');
@@ -531,57 +552,76 @@ def dashboard():
                 chart.update();
                 
                 // Update defense events display
-                if (data.defense_status && data.defense_status.length > 0) {
-                  // Clear the list
+                if (data.defense_events && data.defense_events.length > 0) {
+                  // Check if there are new events to highlight
+                  const hasNewEvents = data.new_events && data.new_events.length > 0;
+                  
+                  // Update the events count badge
+                  eventCountElement.textContent = `${data.defense_events.length} events`;
+                  
+                  // Clear the table content
                   defenseEventsElement.innerHTML = '';
                   
-                  // Add each defense event
-                  data.defense_status.forEach(event => {
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item py-1 text-info';
+                  // Add each defense event to the table
+                  data.defense_events.forEach(event => {
+                    const row = document.createElement('tr');
                     
-                    // Extract just the relevant part of the message
-                    let eventText = event;
-                    if (event.includes('[DEFENSE]')) {
-                      eventText = event.split('[DEFENSE]')[1].trim();
+                    // Check if this is a new event to highlight it
+                    if (hasNewEvents && data.new_events.some(e => e.raw === event.raw)) {
+                      row.className = 'defense-event-new';
                     }
                     
-                    // Add an appropriate icon
-                    if (event.includes('Anomaly detection')) {
-                      li.innerHTML = `<i class="bi bi-graph-up"></i> ${eventText}`;
-                      li.classList.add('text-warning');
-                    } else if (event.includes('authentication')) {
-                      li.innerHTML = `<i class="bi bi-shield-check"></i> ${eventText}`;
-                      li.classList.add('text-primary');
-                    } else {
-                      li.innerHTML = `<i class="bi bi-check-circle"></i> ${eventText}`;
+                    // Add icon based on event type
+                    let icon = '<i class="bi bi-check-circle-fill text-primary"></i>';
+                    if (event.type === 'Anomaly') {
+                      icon = '<i class="bi bi-graph-up-arrow text-warning"></i>';
+                    } else if (event.type === 'Authentication') {
+                      icon = '<i class="bi bi-shield-check text-info"></i>';
                     }
                     
-                    defenseEventsElement.appendChild(li);
+                    // Create the table cells
+                    const timeCell = document.createElement('td');
+                    timeCell.textContent = event.timestamp;
+                    
+                    const messageCell = document.createElement('td');
+                    messageCell.innerHTML = event.message;
+                    
+                    const typeCell = document.createElement('td');
+                    typeCell.innerHTML = `${icon} ${event.type}`;
+                    
+                    // Add cells to the row
+                    row.appendChild(timeCell);
+                    row.appendChild(messageCell);
+                    row.appendChild(typeCell);
+                    
+                    // Add the row to the table
+                    defenseEventsElement.appendChild(row);
                   });
-                  
-                  // If there are no defense events but with_defense is in attack name,
-                  // show a "monitoring" message
-                  if (data.defense_status.length === 0 && data.active_attack && data.active_attack.includes('defense')) {
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item py-1 text-muted';
-                    li.innerHTML = 'Defense systems monitoring...';
-                    defenseEventsElement.appendChild(li);
-                  }
-                } else if (data.active_attack && typeof data.active_attack === 'string' && data.active_attack.includes('defense')) {
-                  // If defense mode but no events yet
+                } else if (data.active_attack && typeof data.active_attack === 'string' && 
+                          (data.active_attack.includes('defense') || data.active_attack.includes('DEFENSE'))) {
+                  // If in defense mode but no events yet
                   defenseEventsElement.innerHTML = '';
-                  const li = document.createElement('li');
-                  li.className = 'list-group-item py-1 text-muted';
-                  li.innerHTML = 'Defense systems monitoring...';
-                  defenseEventsElement.appendChild(li);
+                  const row = document.createElement('tr');
+                  const cell = document.createElement('td');
+                  cell.colSpan = 3;
+                  cell.className = 'text-center text-muted py-3';
+                  cell.innerHTML = 'Defense systems monitoring...';
+                  row.appendChild(cell);
+                  defenseEventsElement.appendChild(row);
+                  
+                  eventCountElement.textContent = '0 events';
                 } else {
                   // If no defense mode and no events
                   defenseEventsElement.innerHTML = '';
-                  const li = document.createElement('li');
-                  li.className = 'list-group-item text-muted small';
-                  li.innerHTML = 'No defense events detected';
-                  defenseEventsElement.appendChild(li);
+                  const row = document.createElement('tr');
+                  const cell = document.createElement('td');
+                  cell.colSpan = 3;
+                  cell.className = 'text-center text-muted py-3';
+                  cell.innerHTML = 'No defense events logged';
+                  row.appendChild(cell);
+                  defenseEventsElement.appendChild(row);
+                  
+                  eventCountElement.textContent = '0 events';
                 }
               });
           }
@@ -611,7 +651,7 @@ def api_water_level():
     
     # Get active attack and defense status from the console output
     active_attack = ""
-    defense_status = []
+    new_defense_events = []
     
     with open('data/simulation.log', 'r') as f:
         try:
@@ -625,15 +665,48 @@ def api_water_level():
                         active_attack = parts[1].strip()
                     break
             
-            # Look for any defense activations in the last 100 lines 
-            for line in reversed(lines[-100:]):
+            # Look for any defense activations in all available lines
+            for line in lines:
                 if "DEFENSE" in line:
-                    # Only collect the last 10 seconds of defense messages
-                    if time.time() - get_timestamp_from_log(line) < 10:
-                        defense_status.append(line.strip())
+                    log_time = datetime.fromtimestamp(get_timestamp_from_log(line))
+                    timestamp = log_time.strftime('%H:%M:%S')
+                    
+                    # Extract message and categorize it
+                    event_text = line.strip()
+                    if "[DEFENSE]" in event_text:
+                        message = event_text.split("[DEFENSE]")[1].strip()
+                    else:
+                        message = event_text
+                        
+                    # Determine event type
+                    event_type = "General"
+                    if "Anomaly" in message:
+                        event_type = "Anomaly"
+                    elif "authentication" in message or "authentic" in message:
+                        event_type = "Authentication"
+                    
+                    # Add to events if not already present
+                    event = {
+                        'timestamp': timestamp,
+                        'message': message,
+                        'type': event_type,
+                        'raw': event_text
+                    }
+                    
+                    # Check if this event is already in our list
+                    if event_text not in [e['raw'] for e in defense_events]:
+                        new_defense_events.append(event)
+                        
         except Exception as e:
             print(f"Error parsing log: {e}")
-            pass
+    
+    # Add new events to our global list
+    global defense_events
+    defense_events.extend(new_defense_events)
+    
+    # Keep only the most recent MAX_DEFENSE_EVENTS
+    if len(defense_events) > MAX_DEFENSE_EVENTS:
+        defense_events = defense_events[-MAX_DEFENSE_EVENTS:]
     
     # Detect if attack has changed
     timestamp_changed = False
@@ -655,7 +728,8 @@ def api_water_level():
         'active_attack': active_attack,
         'timestamp_changed': timestamp_changed,
         'time_remaining': time_remaining,
-        'defense_status': defense_status[-3:] if defense_status else []  # Return last 3 defense messages
+        'defense_events': defense_events,
+        'new_events': new_defense_events
     })
 
 
