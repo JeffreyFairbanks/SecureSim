@@ -21,8 +21,8 @@ def simulation_loop(tank, attacks=None, defenses_enabled=False, demo_mode=False)
         attacks = {}
 
     # For demo mode cycling
-    # First half shows attacks without defense, second half with defense
-    attack_names = ['none', 'replay', 'false_data', 'dos', 'defense_transition', 'none_with_defense', 'replay_with_defense', 'false_data_with_defense', 'dos_with_defense']
+    # First normal operation, then attacks without defense, then attacks with defense
+    attack_names = ['none', 'replay', 'false_data', 'dos', 'none', 'defense_transition', 'none_with_defense', 'replay_with_defense', 'false_data_with_defense', 'dos_with_defense']
     attack_index = 0
     active_attack = attack_names[attack_index]  # Initialize with first attack name
     attack_start_time = time.time()
@@ -53,11 +53,12 @@ def simulation_loop(tank, attacks=None, defenses_enabled=False, demo_mode=False)
                 # Handle special case for defense transition
                 if active_attack == 'defense_transition':
                     defense_active = True
-                    print(f"\n{'='*60}")
-                    print(f"[DEMO] ACTIVATING DEFENSE MECHANISMS")
-                    print(f"[DEMO] The following attacks will now be mitigated")
-                    print(f"{'='*60}\n")
-                    log_anomaly(f"[DEMO] ACTIVATING DEFENSE MECHANISMS")
+                    print(f"\n{'='*80}")
+                    print(f"[DEMO] ⚠️  ACTIVATING DEFENSE MECHANISMS  ⚠️")
+                    print(f"[DEMO] Security systems are now online")
+                    print(f"[DEMO] The following attacks will demonstrate defense capabilities")
+                    print(f"{'='*80}\n")
+                    log_anomaly(f"[DEMO] ACTIVATING DEFENSE MECHANISMS - Security systems are now online")
                     # Skip to next attack right away
                     attack_index = (attack_index + 1) % len(attack_names)
                     active_attack = attack_names[attack_index]
@@ -66,9 +67,16 @@ def simulation_loop(tank, attacks=None, defenses_enabled=False, demo_mode=False)
                 base_attack = active_attack.split('_with_defense')[0] if '_with_defense' in active_attack else active_attack
                 
                 # Print demo status with more visible logging
-                display_name = base_attack if base_attack != 'none' else 'normal operation'
-                if '_with_defense' in active_attack:
-                    display_name += " (with defenses active)"
+                if base_attack == 'none' and attack_index == 0:
+                    display_name = "Initial Normal Operation"
+                elif base_attack == 'none' and attack_index == 4:
+                    display_name = "Normal Operation (Pre-Defense)"
+                elif base_attack == 'none_with_defense':
+                    display_name = "Normal Operation (with Defenses)"
+                elif base_attack != 'none':
+                    display_name = base_attack.replace('_', ' ').title()
+                    if '_with_defense' in active_attack:
+                        display_name += " (with Defenses Active)"
                 
                 print(f"\n{'='*60}")
                 print(f"[DEMO] Now demonstrating: {display_name}")
