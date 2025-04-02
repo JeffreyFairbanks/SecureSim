@@ -619,3 +619,4 @@
 2025-04-02 12:06:38,683:WARNING:Anomaly detected: [DEMO] Now demonstrating: replay
 2025-04-02 12:07:06,735:INFO:127.0.0.1 - - [02/Apr/2025 12:07:06] "GET /api/water-level HTTP/1.1" 200 -
 2025-04-02 12:07:08,817:WARNING:Anomaly detected: [DEMO] Now demonstrating: false_data
+2025-04-02 12:10:45,653:INFO:Logging initialized.

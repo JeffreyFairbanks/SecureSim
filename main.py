@@ -20,10 +20,10 @@ def simulation_loop(tank, attacks=None, defenses_enabled=False, demo_mode=False)
         attacks = {}
 
     # For demo mode cycling
-    active_attack = None
     # First half shows attacks without defense, second half with defense
     attack_names = ['none', 'replay', 'false_data', 'dos', 'defense_transition', 'none_with_defense', 'replay_with_defense', 'false_data_with_defense', 'dos_with_defense']
     attack_index = 0
+    active_attack = attack_names[attack_index]  # Initialize with first attack name
     attack_start_time = time.time()
     attack_duration = 30  # seconds per attack in demo mode
     
@@ -40,7 +40,7 @@ def simulation_loop(tank, attacks=None, defenses_enabled=False, demo_mode=False)
             if current_time - attack_start_time > attack_duration:
                 # Stop current attack if any
                 current_base_attack = active_attack.split('_with_defense')[0] if active_attack and '_with_defense' in active_attack else active_attack
-                if current_base_attack and current_base_attack in attacks:
+                if current_base_attack and current_base_attack != 'none' and current_base_attack in attacks:
                     print(f"\n[DEMO] Stopping {current_base_attack} attack")
                     attacks[current_base_attack].stop()
                 

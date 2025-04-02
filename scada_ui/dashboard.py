@@ -458,7 +458,7 @@ def dashboard():
                 updateTimeElement.innerText = currentTime;
                 
                 // Show the active attack name if provided
-                if (data.active_attack) {
+                if (data.active_attack && typeof data.active_attack === 'string') {
                   currentAttackElement.classList.remove('d-none');
                   const currentAttack = data.active_attack;
                   attackNameElement.innerText = currentAttack;
@@ -466,12 +466,14 @@ def dashboard():
                   // Set appropriate colors based on attack type
                   currentAttackElement.className = 'current-attack';
                   
-                  const withDefense = currentAttack.includes('defense') || 
-                                     currentAttack.includes('with_defense');
+                  const withDefense = currentAttack.includes && (
+                    currentAttack.includes('defense') || 
+                    currentAttack.includes('with_defense')
+                  );
                   
                   // Extract base attack name
                   let baseAttack = currentAttack;
-                  if (baseAttack.includes('with_defense')) {
+                  if (baseAttack.includes && baseAttack.includes('with_defense')) {
                     baseAttack = baseAttack.split('_with_defense')[0];
                   }
                   
@@ -479,19 +481,19 @@ def dashboard():
                     // Special case for defense transition
                     currentAttackElement.classList.add('bg-primary', 'text-white');
                     attackNameElement.innerText = 'ACTIVATING DEFENSE MECHANISMS';
-                  } else if (baseAttack.includes('replay')) {
+                  } else if (baseAttack.includes && baseAttack.includes('replay')) {
                     currentAttackElement.classList.add('bg-danger', 'text-white');
                     attackNameElement.innerText = withDefense ? 
                       'Replay Attack (with defenses)' : 'Replay Attack';
-                  } else if (baseAttack.includes('false_data')) {
+                  } else if (baseAttack.includes && baseAttack.includes('false_data')) {
                     currentAttackElement.classList.add('bg-warning', 'text-dark');
                     attackNameElement.innerText = withDefense ? 
                       'False Data Injection (with defenses)' : 'False Data Injection';
-                  } else if (baseAttack.includes('dos')) {
+                  } else if (baseAttack.includes && baseAttack.includes('dos')) {
                     currentAttackElement.classList.add('bg-info', 'text-dark');
                     attackNameElement.innerText = withDefense ? 
                       'DoS Attack (with defenses)' : 'DoS Attack';
-                  } else if (baseAttack.includes('none') || baseAttack.includes('Normal')) {
+                  } else if (baseAttack.includes && (baseAttack.includes('none') || baseAttack.includes('Normal'))) {
                     currentAttackElement.classList.add('bg-success', 'text-white');
                     attackNameElement.innerText = withDefense ? 
                       'Normal Operation (with defenses)' : 'Normal Operation';
@@ -560,13 +562,13 @@ def dashboard():
                   
                   // If there are no defense events but with_defense is in attack name,
                   // show a "monitoring" message
-                  if (data.defense_status.length === 0 && data.active_attack.includes('defense')) {
+                  if (data.defense_status.length === 0 && data.active_attack && data.active_attack.includes('defense')) {
                     const li = document.createElement('li');
                     li.className = 'list-group-item py-1 text-muted';
                     li.innerHTML = 'Defense systems monitoring...';
                     defenseEventsElement.appendChild(li);
                   }
-                } else if (data.active_attack && data.active_attack.includes('defense')) {
+                } else if (data.active_attack && typeof data.active_attack === 'string' && data.active_attack.includes('defense')) {
                   // If defense mode but no events yet
                   defenseEventsElement.innerHTML = '';
                   const li = document.createElement('li');
