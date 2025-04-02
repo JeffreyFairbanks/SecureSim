@@ -65,8 +65,6 @@ python main.py --attack all --defense
 
 ## 🔎 Dashboard Features
 
-![Dashboard Screenshot](https://i.imgur.com/example.png)
-
 The web interface provides:
 
 1. **Status Banner**: Color-coded indicator showing current mode:

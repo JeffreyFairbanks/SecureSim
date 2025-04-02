@@ -4,7 +4,8 @@ A simulation of an industrial water tank control system with monitoring dashboar
 
 ## Overview
 
-This is the Week 1 submission for the secure-sim industrial control system project. It focuses on system modeling and control logic, providing:
+This is the Week 1 submission for the securesim industrial control system project.
+It focuses on system modeling and control logic, providing:
 
 1. A simulated water tank with inflow/outflow dynamics
 2. Basic control logic to maintain water level setpoint
