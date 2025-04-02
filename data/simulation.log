@@ -705,3 +705,19 @@
 2025-04-02 12:16:07,433:WARNING:Anomaly detected: [DEMO] Now demonstrating: replay (with defenses active)
 2025-04-02 12:16:08,579:INFO:127.0.0.1 - - [02/Apr/2025 12:16:08] "GET /api/water-level HTTP/1.1" 200 -
 2025-04-02 12:16:10,576:INFO:127.0.0.1 - - [02/Apr/2025 12:16:10] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:27:22,900:INFO:Logging initialized.
+2025-04-02 12:27:22,952:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-02 12:27:22,952:INFO:[33mPress CTRL+C to quit[0m
+2025-04-02 12:27:22,959:INFO:127.0.0.1 - - [02/Apr/2025 12:27:22] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:27:24,959:INFO:127.0.0.1 - - [02/Apr/2025 12:27:24] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:27:26,962:INFO:127.0.0.1 - - [02/Apr/2025 12:27:26] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:27:27,522:INFO:127.0.0.1 - - [02/Apr/2025 12:27:27] "GET / HTTP/1.1" 200 -
+2025-04-02 12:27:29,556:INFO:127.0.0.1 - - [02/Apr/2025 12:27:29] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:27:31,557:INFO:127.0.0.1 - - [02/Apr/2025 12:27:31] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:27:33,556:INFO:127.0.0.1 - - [02/Apr/2025 12:27:33] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:27:35,557:INFO:127.0.0.1 - - [02/Apr/2025 12:27:35] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:27:37,556:INFO:127.0.0.1 - - [02/Apr/2025 12:27:37] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:27:39,556:INFO:127.0.0.1 - - [02/Apr/2025 12:27:39] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:27:41,557:INFO:127.0.0.1 - - [02/Apr/2025 12:27:41] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 12:27:43,556:INFO:127.0.0.1 - - [02/Apr/2025 12:27:43] "GET /api/water-level HTTP/1.1" 200 -

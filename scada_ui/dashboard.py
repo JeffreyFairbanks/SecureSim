@@ -23,6 +23,17 @@ attack_change_time = time.time()  # When the attack last changed
 defense_events = []  # List of defense events with timestamps
 MAX_DEFENSE_EVENTS = 100  # Maximum number of defense events to retain
 
+# Clear log file at startup to remove old events
+def clear_old_log_entries():
+    try:
+        with open('data/simulation.log', 'w') as f:
+            f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')},000:INFO:Log file cleared for new session.\n")
+    except Exception as e:
+        print(f"Error clearing log file: {e}")
+
+# Clear log at startup
+clear_old_log_entries()
+
 # Function to extract timestamp from log line
 def get_timestamp_from_log(log_line):
     """
@@ -191,8 +202,8 @@ def dashboard():
           <div class="row mb-4">
             <div class="col">
               <div class="card">
-                <div class="card-header bg-primary text-white d-flex justify-content-between">
-                  <h5 class="mb-0">Defense Event Log</h5>
+                <div id="defense-header" class="card-header bg-secondary text-white d-flex justify-content-between">
+                  <h5 class="mb-0">Defense Event Log <small id="defense-status">(Inactive)</small></h5>
                   <span class="badge bg-light text-dark" id="event-count">0 events</span>
                 </div>
                 <div class="card-body p-0" style="max-height: 200px; overflow-y: auto;">
@@ -331,6 +342,8 @@ def dashboard():
           const discrepancyElement = document.getElementById('level-discrepancy');
           const defenseEventsElement = document.getElementById('defense-events');
           const eventCountElement = document.getElementById('event-count');
+          const defenseHeaderElement = document.getElementById('defense-header');
+          const defenseStatusElement = document.getElementById('defense-status');
 
           // Create tank markers for main tank
           const tankMarkers = document.getElementById('tank-markers');
@@ -491,6 +504,17 @@ def dashboard():
                     currentAttack.includes('defense') || 
                     currentAttack.includes('with_defense')
                   );
+                  
+                  // Update defense status display
+                  if (withDefense || (data.defense_events && data.defense_events.length > 0)) {
+                    defenseHeaderElement.className = 'card-header bg-primary text-white d-flex justify-content-between';
+                    defenseStatusElement.innerText = '(Active)';
+                    defenseStatusElement.className = 'badge bg-success ms-2';
+                  } else {
+                    defenseHeaderElement.className = 'card-header bg-secondary text-white d-flex justify-content-between';
+                    defenseStatusElement.innerText = '(Inactive)';
+                    defenseStatusElement.className = '';
+                  }
                   
                   // Extract base attack name
                   let baseAttack = currentAttack;
@@ -667,7 +691,8 @@ def api_water_level():
             
             # Look for any defense activations in all available lines
             for line in lines:
-                if "DEFENSE" in line:
+                # Only process actual defense events, not demo announcements
+                if "[DEFENSE]" in line and "DEMO" not in line:
                     log_time = datetime.fromtimestamp(get_timestamp_from_log(line))
                     timestamp = log_time.strftime('%H:%M:%S')
                     

@@ -58,7 +58,8 @@ def simulation_loop(tank, attacks=None, defenses_enabled=False, demo_mode=False)
                     print(f"[DEMO] Security systems are now online")
                     print(f"[DEMO] The following attacks will demonstrate defense capabilities")
                     print(f"{'='*80}\n")
-                    log_anomaly(f"[DEMO] ACTIVATING DEFENSE MECHANISMS - Security systems are now online")
+                    # Special log format for activation that will be shown in the event log
+                    log_anomaly(f"[DEFENSE] Security systems activated - Starting defense monitoring")
                     # Skip to next attack right away
                     attack_index = (attack_index + 1) % len(attack_names)
                     active_attack = attack_names[attack_index]
@@ -249,6 +250,10 @@ def main():
     
     # Initialize logging
     setup_logging()
+    
+    # Log defense status at startup if --defense flag is used (and not in demo mode)
+    if args.defense and not args.demo:
+        log_anomaly("[DEFENSE] Security monitoring enabled at startup")
     
     # Initialize the water tank simulation
     tank = WaterTank(capacity=100.0, initial_level=50.0)
