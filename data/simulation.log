@@ -284,3 +284,18 @@
 2025-04-02 11:38:47,651:INFO:[33mPress CTRL+C to quit[0m
 2025-04-02 11:39:06,754:INFO:127.0.0.1 - - [02/Apr/2025 11:39:06] "GET /api/water-level HTTP/1.1" 200 -
 2025-04-02 11:40:06,751:INFO:127.0.0.1 - - [02/Apr/2025 11:40:06] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 11:48:16,977:INFO:Logging initialized.
+2025-04-02 11:48:17,002:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-02 11:48:17,002:INFO:[33mPress CTRL+C to quit[0m
+2025-04-02 11:48:31,534:INFO:127.0.0.1 - - [02/Apr/2025 11:48:31] "GET / HTTP/1.1" 200 -
+2025-04-02 11:48:33,592:INFO:127.0.0.1 - - [02/Apr/2025 11:48:33] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 11:48:35,597:INFO:127.0.0.1 - - [02/Apr/2025 11:48:35] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 11:48:37,593:INFO:127.0.0.1 - - [02/Apr/2025 11:48:37] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 11:48:39,596:INFO:127.0.0.1 - - [02/Apr/2025 11:48:39] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 11:48:41,594:INFO:127.0.0.1 - - [02/Apr/2025 11:48:41] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 11:48:43,595:INFO:127.0.0.1 - - [02/Apr/2025 11:48:43] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 11:48:45,595:INFO:127.0.0.1 - - [02/Apr/2025 11:48:45] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 11:48:47,594:INFO:127.0.0.1 - - [02/Apr/2025 11:48:47] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 11:48:49,593:INFO:127.0.0.1 - - [02/Apr/2025 11:48:49] "GET /api/water-level HTTP/1.1" 200 -
+2025-04-02 11:48:51,596:INFO:127.0.0.1 - - [02/Apr/2025 11:48:51] "GET /api/water-level HTTP/1.1" 200 -

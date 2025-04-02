@@ -12,14 +12,45 @@ from defenses.authentication import command_authenticator
 from scada_ui.dashboard import start_dashboard, update_water_level
 
 
-def simulation_loop(tank, attacks=None, defenses_enabled=False):
+def simulation_loop(tank, attacks=None, defenses_enabled=False, demo_mode=False):
     """
     Main simulation loop that handles all processes
     """
     if attacks is None:
         attacks = {}
 
+    # For demo mode cycling
+    active_attack = None
+    attack_names = ['none', 'replay', 'false_data', 'dos']
+    attack_index = 0
+    attack_start_time = time.time()
+    attack_duration = 30  # seconds per attack in demo mode
+    
     while True:
+        # In demo mode, cycle through attacks
+        if demo_mode:
+            current_time = time.time()
+            # Time to switch to next attack?
+            if current_time - attack_start_time > attack_duration:
+                # Stop current attack if any
+                if active_attack and active_attack in attacks:
+                    print(f"\n[DEMO] Stopping {active_attack} attack")
+                    attacks[active_attack].stop()
+                
+                # Move to next attack
+                attack_index = (attack_index + 1) % len(attack_names)
+                active_attack = attack_names[attack_index]
+                attack_start_time = current_time
+                
+                # Print demo status
+                print(f"\n{'='*60}")
+                print(f"[DEMO] Now demonstrating: {active_attack if active_attack != 'none' else 'normal operation'}")
+                print(f"{'='*60}\n")
+                
+                # Start the new attack
+                if active_attack != 'none' and active_attack in attacks:
+                    attacks[active_attack].start()
+        
         # Get the actual level from the tank
         current_level = tank.update(dt=1)
         
@@ -27,17 +58,32 @@ def simulation_loop(tank, attacks=None, defenses_enabled=False):
         reported_level = current_level
         
         # Apply each active attack's effects
-        if 'replay' in attacks and attacks['replay'].running:
-            reported_level = attacks['replay'].attack_value
-            print(f"[Replay Attack] Spoofed sensor reading: {reported_level}")
-        
-        if 'false_data' in attacks and attacks['false_data'].running:
-            reported_level = attacks['false_data'].get_false_reading(reported_level)
-            print(f"[False Data Attack] Manipulated sensor reading: {reported_level}")
+        if not demo_mode:
+            # In normal mode, apply all active attacks
+            if 'replay' in attacks and attacks['replay'].running:
+                reported_level = attacks['replay'].attack_value
+                print(f"[Replay Attack] Spoofed sensor reading: {reported_level}")
             
-        if 'dos' in attacks and attacks['dos'].running:
-            reported_level = attacks['dos'].get_delayed_reading(reported_level)
-            print(f"[DoS Attack] Delayed sensor reading: {reported_level}")
+            if 'false_data' in attacks and attacks['false_data'].running:
+                reported_level = attacks['false_data'].get_false_reading(reported_level)
+                print(f"[False Data Attack] Manipulated sensor reading: {reported_level}")
+                
+            if 'dos' in attacks and attacks['dos'].running:
+                reported_level = attacks['dos'].get_delayed_reading(reported_level)
+                print(f"[DoS Attack] Delayed sensor reading: {reported_level}")
+        else:
+            # In demo mode, only apply the currently active attack
+            if active_attack == 'replay' and attacks['replay'].running:
+                reported_level = attacks['replay'].attack_value
+                print(f"[Replay Attack] Spoofed sensor reading: {reported_level}")
+            
+            elif active_attack == 'false_data' and attacks['false_data'].running:
+                reported_level = attacks['false_data'].get_false_reading(reported_level)
+                print(f"[False Data Attack] Manipulated sensor reading: {reported_level}")
+                
+            elif active_attack == 'dos' and attacks['dos'].running:
+                reported_level = attacks['dos'].get_delayed_reading(reported_level)
+                print(f"[DoS Attack] Delayed sensor reading: {reported_level}")
             
         print(f"Water Tank Level - Reported: {reported_level:.1f}, Actual: {current_level:.1f}")
         
@@ -73,6 +119,8 @@ def main():
                         default='none', help='Attack type to simulate')
     parser.add_argument('--defense', action='store_true', 
                         help='Enable defense mechanisms')
+    parser.add_argument('--demo', action='store_true',
+                        help='Enable demonstration mode that cycles through attacks')
     args = parser.parse_args()
     
     # Initialize logging
@@ -91,25 +139,33 @@ def main():
     false_data_attack = FalseDataInjectionAttack(tank)
     dos_attack = DoSAttack(tank)
     
-    # Activate requested attack(s)
-    if args.attack == 'replay' or args.attack == 'all':
-        attacks['replay'] = replay_attack
-        replay_attack.start()
-        
-    if args.attack == 'false_data' or args.attack == 'all':
-        attacks['false_data'] = false_data_attack
-        false_data_attack.start()
-        
-    if args.attack == 'dos' or args.attack == 'all':
-        attacks['dos'] = dos_attack
-        dos_attack.start()
+    # Initialize all attacks but don't start them yet
+    attacks['replay'] = replay_attack
+    attacks['false_data'] = false_data_attack
+    attacks['dos'] = dos_attack
+    
+    # If in demo mode, don't start any attacks yet - they'll be cycled through
+    if not args.demo:
+        # Activate requested attack(s)
+        if args.attack == 'replay' or args.attack == 'all':
+            replay_attack.start()
+            
+        if args.attack == 'false_data' or args.attack == 'all':
+            false_data_attack.start()
+            
+        if args.attack == 'dos' or args.attack == 'all':
+            dos_attack.start()
+    else:
+        print("\n" + "="*60)
+        print("[DEMO MODE] Starting demonstration - will cycle through each attack")
+        print("="*60 + "\n")
     
     # Start the SCADA dashboard
     start_dashboard()
     
     # Run the main simulation loop
     try:
-        simulation_loop(tank, attacks, args.defense)
+        simulation_loop(tank, attacks, args.defense, args.demo)
     except KeyboardInterrupt:
         controller.stop()
         # Stop all active attacks

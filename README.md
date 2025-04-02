@@ -96,6 +96,12 @@ secure-sim/
    
    # Enable defense mechanisms
    python main.py --attack all --defense
+   
+   # Demo mode - automatically cycles through all attacks (30 seconds each)
+   python main.py --demo
+   
+   # Demo mode with defenses enabled
+   python main.py --demo --defense
    ```
 
 2. Access the dashboard:
