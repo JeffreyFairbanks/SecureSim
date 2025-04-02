@@ -156,10 +156,28 @@ def dashboard():
             border-radius: 5px;
             font-weight: bold;
             animation: fade 3s infinite;
+            border: 3px solid transparent;
+          }
+          .attack-normal {
+            border-color: #0d6efd !important; /* Blue border for normal operation */
+            box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+          }
+          .attack-active {
+            border-color: #dc3545 !important; /* Red border for active attacks */
+            box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+          }
+          .attack-transition {
+            border-color: #ffc107 !important; /* Yellow border for transition */
+            box-shadow: 0 0 15px rgba(255, 193, 7, 0.7);
+            animation: pulse-border 1.5s infinite;
+          }
+          @keyframes pulse-border {
+            0%, 100% { border-width: 3px; }
+            50% { border-width: 6px; }
           }
           @keyframes fade {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+            50% { opacity: 0.8; }
           }
           .defense-event-new {
             animation: defense-highlight 2s ease-in-out;
@@ -504,6 +522,28 @@ def dashboard():
                     currentAttack.includes('defense') || 
                     currentAttack.includes('with_defense')
                   );
+                  
+                  // Add highlighting based on attack type
+                  if (currentAttack === 'ACTIVATING DEFENSE MECHANISMS' || 
+                      (currentAttack.includes && currentAttack.includes('defense_transition'))) {
+                    // Yellow pulsing highlight for transition
+                    currentAttackElement.classList.add('attack-transition');
+                  } else if (currentAttack.includes && (
+                      currentAttack.includes('none') || 
+                      currentAttack === 'Initial Normal Operation' ||
+                      currentAttack === 'Normal Operation (Pre-Defense)' ||
+                      currentAttack === 'Normal Operation (with Defenses)'
+                     )) {
+                    // Blue highlight for normal operation
+                    currentAttackElement.classList.add('attack-normal');
+                  } else if (currentAttack.includes && (
+                      currentAttack.includes('replay') || 
+                      currentAttack.includes('false_data') || 
+                      currentAttack.includes('dos')
+                     )) {
+                    // Red highlight for attacks
+                    currentAttackElement.classList.add('attack-active');
+                  }
                   
                   // Update defense status display
                   if (withDefense || (data.defense_events && data.defense_events.length > 0)) {
