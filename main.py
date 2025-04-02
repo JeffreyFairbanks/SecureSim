@@ -256,7 +256,7 @@ def main():
         log_anomaly("[DEFENSE] Security monitoring enabled at startup")
     
     # Initialize the water tank simulation
-    tank = WaterTank(capacity=100.0, initial_level=50.0)
+    tank = WaterTank(capacity=100.0, initial_level=10.0)
     
     # Start the control logic
     controller = Controller(tank, setpoint=75.0)  # Increased setpoint to allow higher water levels

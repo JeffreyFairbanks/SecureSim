@@ -9,12 +9,12 @@ app = Flask(__name__)
 
 
 # Global variables to store both reported and actual water levels
-water_level = 45.0  # Potentially spoofed/reported level (set to a different initial value)
-actual_water_level = 75.0  # Actual water level (set to a different initial value)
+water_level = 10.0  # Potentially spoofed/reported level
+actual_water_level = 10.0  # Actual water level
 current_time = datetime.now().strftime('%H:%M:%S')
 timestamps = [current_time] * 5  # Pre-populate with initial timestamps
-history = [water_level] * 5  # Pre-populate with some initial data points
-actual_history = [actual_water_level] * 5  # Pre-populate with some initial data points
+history = [water_level] * 5  # Pre-populate with initial water level
+actual_history = [actual_water_level] * 5  # Pre-populate with initial water level
 MAX_HISTORY = 60  # Increased history size for more data points
 last_active_attack = ""  # Track the last active attack for change detection
 attack_change_time = time.time()  # When the attack last changed
