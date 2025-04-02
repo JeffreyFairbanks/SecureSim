@@ -34,8 +34,10 @@ class Controller:
                 new_inflow = max(0, min(5, control_signal + 2.5))
                 self.tank.set_inflow(new_inflow)
                 
-                # Keep outflow constant
-                self.tank.set_outflow(1.0)
+                # Outflow is handled by random outflow feature if enabled
+                # Otherwise use a constant outflow
+                if not hasattr(self.tank, 'random_outflow') or not self.tank.random_outflow:
+                    self.tank.set_outflow(1.0)
             
             # Sleep to control loop rate
             time.sleep(1)

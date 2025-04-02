@@ -37,8 +37,8 @@ def main():
     console_log_file = setup_console_logging()
     setup_logging()
     
-    # Initialize the water tank simulation
-    tank = WaterTank(capacity=100.0, initial_level=10.0)
+    # Initialize the water tank simulation with random outflow
+    tank = WaterTank(capacity=100.0, initial_level=10.0, random_outflow=True)
     
     # Start the control logic
     controller = Controller(tank, setpoint=50.0)
