@@ -18,8 +18,8 @@ def simulation_loop(tank):
         # Log water level
         print(f"Water Tank Level: {current_level:.1f}")
         
-        # Update UI with level
-        update_water_level(current_level)
+        # Update UI with level and flow rates
+        update_water_level(current_level, tank.inflow, tank.outflow)
         
         # Basic safety check
         if current_level <= 0 or current_level >= tank.capacity:

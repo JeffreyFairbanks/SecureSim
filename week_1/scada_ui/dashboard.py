@@ -8,9 +8,11 @@ from datetime import datetime
 app = Flask(__name__)
 
 
-# Global variables to store water level
+# Global variables to store water level and flow rates
 water_level = 10.0
 actual_water_level = 10.0
+tank_inflow = 0.0
+tank_outflow = 0.0
 current_time = datetime.now().strftime('%H:%M:%S')
 timestamps = [current_time] * 5  # Pre-populate with initial timestamps
 history = [water_level] * 5  # Pre-populate with initial water level
@@ -267,6 +269,10 @@ def dashboard():
                 const currentTime = new Date().toLocaleTimeString();
                 updateTimeElement.innerText = currentTime;
                 
+                // Get real inflow/outflow values from API
+                inflowRateElement.innerText = data.inflow.toFixed(1);
+                outflowRateElement.innerText = data.outflow.toFixed(1);
+                
                 // Simulate control activity (just visual feedback for week 1)
                 const controlPct = Math.min(100, Math.max(0, 50 + (newLevel - 50) * 2));
                 controlProgressElement.style.width = `${controlPct}%`;
@@ -274,16 +280,10 @@ def dashboard():
                 
                 if (controlPct > 70) {
                   controlProgressElement.className = "progress-bar progress-bar-striped progress-bar-animated bg-danger";
-                  inflowRateElement.innerText = "1.0";
-                  outflowRateElement.innerText = "3.0";
                 } else if (controlPct < 30) {
                   controlProgressElement.className = "progress-bar progress-bar-striped progress-bar-animated bg-warning";
-                  inflowRateElement.innerText = "3.0";
-                  outflowRateElement.innerText = "1.0";
                 } else {
                   controlProgressElement.className = "progress-bar progress-bar-striped progress-bar-animated bg-success";
-                  inflowRateElement.innerText = "2.0";
-                  outflowRateElement.innerText = "2.0";
                 }
 
                 // Update history counter
@@ -311,18 +311,26 @@ def dashboard():
 
 @app.route('/api/water-level')
 def api_water_level():
-    global history, timestamps
+    global history, timestamps, tank_inflow, tank_outflow
     
     return jsonify({
         'level': water_level,
         'history': history,
-        'timestamps': timestamps
+        'timestamps': timestamps,
+        'inflow': tank_inflow,
+        'outflow': tank_outflow
     })
 
 
-def update_water_level(new_level):
-    global water_level, history, timestamps
+def update_water_level(new_level, inflow=None, outflow=None):
+    global water_level, history, timestamps, tank_inflow, tank_outflow
     water_level = new_level
+    
+    # Update flow rates if provided
+    if inflow is not None:
+        tank_inflow = inflow
+    if outflow is not None:
+        tank_outflow = outflow
 
     # Add timestamp for this data point
     current_time = datetime.now().strftime('%H:%M:%S')
